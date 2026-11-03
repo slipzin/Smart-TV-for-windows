@@ -20,7 +20,7 @@ mkdir -p "$WORK/config/package-lists" \
   "$WORK/config/includes.chroot/usr/local/bin" \
   "$WORK/config/includes.chroot/etc/xdg/autostart" \
   "$WORK/config/includes.chroot/etc/skel/.config/autostart" \
-  "$WORK/config/includes.chroot/etc/skel/Desktop"
+  "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d"
 cd "$WORK"
 
 python3 "$ROOT/pc/build.py" --out "$WORK/windows-build"
@@ -59,6 +59,7 @@ Terminal=false
 Categories=System;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar Smart TV OS.desktop"
+echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/grub.d/50-smarttv-os-prober.cfg"
 
 cat > "$WORK/config/package-lists/smarttv.list.chroot" <<'EOF'
 live-boot
@@ -86,6 +87,7 @@ vulkan-tools
 gamemode
 mangohud
 steam-installer
+steam-devices
 lutris
 wine
 wine64
@@ -95,6 +97,7 @@ kodi
 calamares
 calamares-settings-debian
 os-prober
+ntfs-3g
 parted
 dosfstools
 btrfs-progs
