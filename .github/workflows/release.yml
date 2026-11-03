@@ -1,0 +1,33 @@
+# A version tag (v1.0, v1.1...) builds SmartTV-<version>.zip and publishes it as a Release.
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the zip
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          python3 pc/build.py --out out/SmartTV --zip "out/SmartTV-$v.zip"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          cat > notes.md <<'NOTES'
+          **Instalar:** baixe o ZIP abaixo, extraia (no pendrive ou no PC) e dê dois cliques em `INICIAR-TV.bat`.
+          Sair: segure View + Menu no controle, Ajustes > Sair do modo TV, ou Alt+F4.
+
+          - Tela inicial de TV em tela cheia, com controle de video game, teclado ou mouse.
+          - Abre os aplicativos instalados no Windows (Netflix, Prime Video, Disney+, Apple TV, Spotify, Xbox, Steam Big Picture...).
+          - Planos de fundo: 5 animados, 6 estáticos e os seus (imagens, GIF e vídeos da pasta Fundos).
+          - Escurecer e desfocar o fundo, velocidade da animação, tema, idioma, abrir junto com o Windows.
+          - Não instala nada e não muda o Windows. Requer Windows 10 ou 11 com o Microsoft Edge.
+          NOTES
+          sed -i 's/^          //' notes.md
+          gh release create "$GITHUB_REF_NAME" "out/SmartTV-$v.zip" --title "Smart TV for Windows $v" --notes-file notes.md

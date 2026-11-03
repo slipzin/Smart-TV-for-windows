@@ -21,8 +21,8 @@ navegador. Não instala nada e não muda o Windows: roda direto de um pendrive.
 
 ## Instalar
 
-1. Baixe o **[SmartTV-1.0.zip](download/SmartTV-1.0.zip)** (clique nele e depois em *Download raw file*) e extraia
-   no pendrive ou no PC.
+1. Baixe o `SmartTV-<versão>.zip` em **[Releases](../../releases/latest)** e extraia no pendrive ou no PC.
+   (O mesmo ZIP também fica em [`download/`](download/).)
 2. Dê dois cliques em **`INICIAR-TV.bat`**.
 3. Para sair: segure **View + Menu** no controle, use **Ajustes > Sair do modo TV**, ou aperte **Alt+F4**.
 
@@ -32,6 +32,7 @@ ver na tela: eles aparecem sozinhos.
 ## Para desenvolver
 
 - `python3 pc/build.py --out out/SmartTV --zip out/SmartTV.zip` monta a pasta e o ZIP.
+- Uma marca de versão (`git tag v1.1 && git push origin v1.1`) publica a Release sozinha (`.github/workflows/release.yml`).
 - `pc/test.sh [minutos]` testa tudo sem precisar de Windows: compatibilidade com o Windows PowerShell 5.1, o código
   do controle em C# 5, as decisões do controle, o servidor de verdade num "PC simulado" (apps, fundos, vídeos em
   trechos, abrir com o Windows, ataques) e a tela no Chromium com um controle simulado (8 tamanhos de tela, todos os
