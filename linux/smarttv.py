@@ -158,6 +158,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         host=(self.headers.get("Host") or "").split(":",1)[0].strip("[]").lower()
         if host not in ("127.0.0.1","localhost"): self.js({"error":"local requests only"},403); return
+        origin=self.headers.get("Origin")
+        expected="http://"+host+":"+str(self.server.server_port)
+        if origin and origin != expected: self.js({"error":"same-origin requests only"},403); return
+        fetch_site=self.headers.get("Sec-Fetch-Site")
+        if fetch_site and fetch_site not in ("same-origin","none"): self.js({"error":"same-origin requests only"},403); return
         u=urllib.parse.urlsplit(self.path); path=urllib.parse.unquote(u.path); q=urllib.parse.parse_qs(u.query,keep_blank_values=True)
         if path=="/api/apps":
             self.js({"apps":[{k:a[k] for k in ("id","title","icon","color")} for a in self.server.apps]})
