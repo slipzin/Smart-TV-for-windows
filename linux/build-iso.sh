@@ -67,8 +67,8 @@ live-config
 live-config-systemd
 systemd-sysv
 plasma-desktop
+plasma-workspace
 plasma-nm
-plasma-workspace-wayland
 kwin-x11
 sddm
 xserver-xorg
