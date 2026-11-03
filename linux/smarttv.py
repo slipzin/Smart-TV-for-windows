@@ -42,7 +42,7 @@ def norm(s): return re.sub(r"[^a-z0-9]+"," ",(s or "").casefold()).strip()
 def canonical_app(name):
     n=norm(name)
     for app_id,names,color,icon in KNOWN:
-        if any(norm(x) in n for x in names): return app_id,color,icon
+        if any((n == norm(x) or n.startswith(norm(x) + " ")) if x == "max" else norm(x) in n for x in names): return app_id,color,icon
     return None
 
 def parse_desktop_file(path):
@@ -64,7 +64,7 @@ def parse_desktop_file(path):
     elif shutil.which(exe) is None: return None
     found=canonical_app(name)
     app_id,color,icon=found if found else ("desktop:"+path.stem,"#344054","")
-    return {"id":app_id,"title":name,"icon":icon or e.get("Icon",""),"color":color,
+    return {"id":app_id,"title":name,"icon":icon,"color":color,
             "argv":argv,"desktop_file":str(path)}
 
 def desktop_dirs(home):
@@ -187,7 +187,8 @@ class Handler(BaseHTTPRequestHandler):
         if requested=="1":
             launcher=Path(os.environ.get("SMARTTV_LAUNCHER",str(HERE/"run.sh"))).resolve()
             path.parent.mkdir(parents=True,exist_ok=True)
-            path.write_text("[Desktop Entry]\nType=Application\nName=Smart TV\nComment=Start Smart TV at login\nExec="+shlex.quote(str(launcher))+"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",encoding="utf-8")
+            desktop_exec = '"' + str(launcher).replace("\\", "\\\\").replace('"', '\\"') + '"'
+            path.write_text("[Desktop Entry]\nType=Application\nName=Smart TV\nComment=Start Smart TV at login\nExec="+desktop_exec+"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",encoding="utf-8")
         elif requested=="0":
             try: path.unlink()
             except FileNotFoundError: pass
