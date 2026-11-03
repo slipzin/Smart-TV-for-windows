@@ -1,0 +1,69 @@
+name: Build Smart TV OS Live ISO
+
+on:
+  push:
+    branches:
+      - feature/linux-dual-boot-foundation
+    paths:
+      - "linux/**"
+      - "pc/build.py"
+      - "web/**"
+      - "assets/**"
+      - ".github/workflows/linux-iso.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    name: Build Debian Live ISO (amd64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/linux-dual-boot-foundation
+
+      - name: Build in Debian 13 container
+        run: |
+          docker run --privileged --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            debian:trixie \
+            bash -euxo pipefail -c '
+              apt-get update
+              DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                ca-certificates \
+                cpio \
+                debootstrap \
+                dosfstools \
+                grub-efi-amd64-bin \
+                grub-pc-bin \
+                isolinux \
+                live-build \
+                mtools \
+                rsync \
+                squashfs-tools \
+                syslinux-common \
+                syslinux-utils \
+                xorriso \
+                python3
+              linux/test.sh
+              linux/build-iso.sh
+              cd out
+              sha256sum SmartTV-OS-live-trixie-amd64.iso > SmartTV-OS-live-trixie-amd64.iso.sha256
+              ls -lh SmartTV-OS-live-trixie-amd64.iso*
+            '
+
+      - name: Upload bootable ISO and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-Live-Debian13-amd64
+          path: |
+            out/SmartTV-OS-live-trixie-amd64.iso
+            out/SmartTV-OS-live-trixie-amd64.iso.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
