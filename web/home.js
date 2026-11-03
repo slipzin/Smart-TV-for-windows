@@ -778,7 +778,7 @@
     }
     rows.push({label: tr('Look for new pictures'), value: '›',
       step: function (d) { if (d >= 0) Wall.reload(function () { toast(trf('{n} pictures and videos in the Fundos folder', {n: Wall.media()})); renderSettings(); }); }});
-    rows.push({label: tr('Open with Windows'), toggle: autostartOn === true, dim: autostartOn === null,
+    rows.push({label: TV.platform === 'linux' ? tr('Start automatically') : tr('Open with Windows'), toggle: autostartOn === true, dim: autostartOn === null,
       step: function () {
         if (autostartOn === null) return;
         TV.autostart(!autostartOn, function (on) { if (on !== null) autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
