@@ -1,4 +1,4 @@
-# Smart TV for Windows
+# Smart TV for Windows + Smart TV OS (Linux)
 
 Transforme o computador numa smart TV. Uma tela inicial em tela cheia, no estilo das TVs mais modernas, comandada pelo
 **controle de video game**, pelo teclado ou pelo mouse. Ela abre os **aplicativos instalados no Windows** (Netflix,
@@ -44,6 +44,27 @@ ver na tela: eles aparecem sozinhos.
 | `web/fundos.js` | os planos de fundo |
 | `pc/tv.ps1` | o lado do Windows: servidor local, apps, controle |
 | `assets/` | idiomas, ícones, fonte e ajustes iniciais |
+
+
+## Edição Linux experimental (dual boot em desenvolvimento)
+
+A branch `feature/linux-dual-boot-foundation` inicia a migração para um sistema Linux independente, sem remover a edição Windows. Ela preserva a interface web, adiciona um backend Linux com descoberta de aplicativos nativos/Flatpak, integração com Steam Big Picture e uma base para ISO Live Debian 13.7 amd64.
+
+**Ainda não é uma ISO estável nem um instalador dual boot validado.** A imagem experimental usa Calamares e precisa de testes em máquinas UEFI reais antes de instalação permanente. Veja [linux/README.md](linux/README.md) para os requisitos, a construção da imagem, os cuidados com partições e as limitações atuais.
+
+Para testar o backend diretamente em Debian 13:
+
+```bash
+sudo apt install python3 chromium curl
+./linux/run.sh
+```
+
+Para construir a ISO experimental em Debian 13:
+
+```bash
+sudo apt install live-build debootstrap squashfs-tools xorriso
+sudo linux/build-iso.sh
+```
 
 ## Licença
 
