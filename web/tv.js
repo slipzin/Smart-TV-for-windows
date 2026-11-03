@@ -10,8 +10,9 @@ var TV = (function () {
 
   var webos = typeof window.PalmServiceBridge !== 'undefined';
   var samsung = !webos && typeof window.tizen !== 'undefined' && !!window.tizen.application;
-  // Windows (pc/tv.ps1): the page comes from the PC's own little server, which lists and opens the PC's apps.
+  // Desktop backend on loopback: PowerShell on Windows or smarttv.py on Linux.
   var pc = !webos && !samsung && /^http:\/\/(127\.0\.0\.1|localhost):48765\//.test(window.location.href);
+  var linux = pc && /(?:\?|&)platform=linux(?:&|$)/.test(window.location.search);
   var calls = [];   // a bridge is collected if nothing holds it before its reply arrives
   var tizen2 = samsung && /Tizen 2\./.test(navigator.userAgent);
   // 2017 and 2018 Samsungs (Tizen 3 and 4) freeze opening their settings from an app (MU6100, MU6122, NU7400, #257).
@@ -566,6 +567,7 @@ var TV = (function () {
 
   return {
     name: webos ? 'webos' : samsung ? 'tizen' : pc ? 'pc' : 'browser',
+    platform: linux ? 'linux' : pc ? 'windows' : 'browser',
 
     /**
      * Whether an app can open the TV's settings. Not on Tizen 2 (a 2016 KU6300): the "settings" request and
