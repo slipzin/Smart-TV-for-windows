@@ -1,8 +1,10 @@
-# A version tag (v1.0, v1.1...) builds SmartTV-<version>.zip and publishes it as a Release.
+# Each push to main: when the version in pc/build.py (VERSION) has no Release yet, builds SmartTV-<version>.zip and
+# publishes it as Release v<version>. Raising VERSION is what makes a new Release.
 name: Release
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -10,15 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build the zip
-        run: |
-          v="${GITHUB_REF_NAME#v}"
-          python3 pc/build.py --out out/SmartTV --zip "out/SmartTV-$v.zip"
-      - name: Publish the release
+      - name: Version
+        id: v
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          v="${GITHUB_REF_NAME#v}"
+          v="$(python3 -c "import re;print(re.search(r\"VERSION = '([^']+)'\", open('pc/build.py').read()).group(1))")"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" >/dev/null 2>&1; then echo "new=false" >> "$GITHUB_OUTPUT"; else echo "new=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Build the zip
+        if: steps.v.outputs.new == 'true'
+        run: python3 pc/build.py --out out/SmartTV --zip "out/SmartTV-${{ steps.v.outputs.version }}.zip"
+      - name: Publish the release
+        if: steps.v.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ steps.v.outputs.version }}"
           cat > notes.md <<'NOTES'
           **Instalar:** baixe o ZIP abaixo, extraia (no pendrive ou no PC) e dê dois cliques em `INICIAR-TV.bat`.
           Sair: segure View + Menu no controle, Ajustes > Sair do modo TV, ou Alt+F4.
@@ -30,4 +40,4 @@ jobs:
           - Não instala nada e não muda o Windows. Requer Windows 10 ou 11 com o Microsoft Edge.
           NOTES
           sed -i 's/^          //' notes.md
-          gh release create "$GITHUB_REF_NAME" "out/SmartTV-$v.zip" --title "Smart TV for Windows $v" --notes-file notes.md
+          gh release create "v$v" "out/SmartTV-$v.zip" --target "$GITHUB_SHA" --title "Smart TV for Windows $v" --notes-file notes.md
