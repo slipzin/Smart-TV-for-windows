@@ -21,7 +21,8 @@ navegador. Não instala nada e não muda o Windows: roda direto de um pendrive.
 
 ## Instalar
 
-1. Baixe o `SmartTV-<versão>.zip` em **[Releases](../../releases/latest)** e extraia (no pendrive ou no PC).
+1. Baixe o **[SmartTV-1.0.zip](download/SmartTV-1.0.zip)** (clique nele e depois em *Download raw file*) e extraia
+   no pendrive ou no PC.
 2. Dê dois cliques em **`INICIAR-TV.bat`**.
 3. Para sair: segure **View + Menu** no controle, use **Ajustes > Sair do modo TV**, ou aperte **Alt+F4**.
 
