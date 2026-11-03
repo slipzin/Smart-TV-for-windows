@@ -124,7 +124,7 @@ def local_ip():
 
 def generated_asset(web,name):
     direct=web/name
-    if direct.is_file(): return direct.read_bytes(),None
+    if direct.is_file(): return direct.read_bytes(),(mimetypes.guess_type(direct.name)[0] or "application/octet-stream")
     assets=REPO/"assets"
     if name in ("config.js","coins.js"):
         source=assets/("config.json" if name=="config.js" else "coins.json")
