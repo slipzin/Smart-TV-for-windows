@@ -1,0 +1,17 @@
+{
+ "tmdbKey": "",
+ "tmdbRegion": "",
+ "latitude": "",
+ "longitude": "",
+ "city": "",
+ "language": "auto",
+ "currency": "",
+ "temperature": "auto",
+ "theme": "auto",
+ "showCrypto": true,
+ "hideAnimation": false,
+ "hideApps": [],
+ "shelfApps": [],
+ "drawerFirst": false,
+ "openPicksIn": "apps"
+}
