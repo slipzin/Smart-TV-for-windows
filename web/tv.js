@@ -426,7 +426,7 @@ var TV = (function () {
   // MARK: - About this TV
 
   /** done({model, firmware, system, version, ip}), with '' for what the TV doesn't tell. */
-  // MARK: - Windows (pc/tv.ps1)
+  // MARK: - Desktop runtime (PowerShell on Windows, smarttv.py on Linux)
 
   /** One call to the PC's server; done(result) with null on failure. */
   function pcApi(path, done) {
