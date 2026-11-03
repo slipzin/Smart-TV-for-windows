@@ -752,7 +752,7 @@
 
   // MARK: - Home Settings
 
-  /** The PC's own rows, first in Home Settings: the background and how it looks, opening with Windows, leaving. */
+  /** The desktop's own rows: background and appearance, automatic startup, and leaving TV mode. */
   var autostartOn = null;
   function pcRows() {
     if (TV.name !== 'pc') return [];
