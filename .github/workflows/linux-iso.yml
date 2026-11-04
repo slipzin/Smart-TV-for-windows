@@ -12,6 +12,10 @@ on:
       - ".github/workflows/linux-iso.yml"
   workflow_dispatch:
 
+concurrency:
+  group: smarttv-linux-iso-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
