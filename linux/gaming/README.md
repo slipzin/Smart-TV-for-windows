@@ -38,7 +38,7 @@ No desktop do Live/instalado existe Instalar extras de jogos. Também é possív
     sudo /usr/local/bin/smart-tv-install-gaming
 
 Esse instalador, quando confirmado pelo usuário, instala:
-- steam-installer e steam-devices (cliente Steam por usuário e regras udev para controles/Steam Input);
+- steam-installer (cliente Steam por usuário; as regras udev de controles/Steam Input já vêm na ISO base);
 - Wine 64/32 bits e Winetricks;
 - DOSBox e ScummVM;
 - Gamescope de Debian Trixie Backports;
