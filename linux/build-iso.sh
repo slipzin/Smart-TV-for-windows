@@ -18,6 +18,7 @@ rm -rf "$WORK"
 mkdir -p "$WORK/config/package-lists" \
   "$WORK/config/includes.chroot/usr/local/lib/smarttv" \
   "$WORK/config/includes.chroot/usr/local/bin" \
+  "$WORK/config/includes.chroot/usr/share/applications" \
   "$WORK/config/includes.chroot/etc/xdg/autostart" \
   "$WORK/config/includes.chroot/etc/skel/.config/autostart" \
   "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d" "$WORK/config/hooks/live"
