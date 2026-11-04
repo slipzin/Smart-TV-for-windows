@@ -22,10 +22,11 @@ export DEBIAN_FRONTEND=noninteractive
 dpkg --add-architecture i386
 apt-get update
 apt-get install -y --no-install-recommends \
-  steam-devices \
+  steam-installer steam-devices \
+  libglx-mesa0:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386 \
+  gamemode mangohud lutris vulkan-tools \
   wine wine64 wine32 winetricks \
-  dosbox scummvm \
-  bluez blueman
+  dosbox scummvm
 
 # Gamescope is in Debian 13 backports rather than the base Trixie suite.
 if grep -q 'VERSION_CODENAME=trixie' /etc/os-release; then
