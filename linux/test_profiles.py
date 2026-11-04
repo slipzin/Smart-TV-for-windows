@@ -26,7 +26,8 @@ class ProfileManifestTests(unittest.TestCase):
         for item in (
             "plasma-desktop", "chromium", "flatpak", "plasma-discover",
             "bluez", "blueman", "steam-devices", "pipewire-audio",
-            "mesa-vulkan-drivers", "kodi", "vlc",
+            "mesa-vulkan-drivers", "mesa-va-drivers", "libva2",
+            "libva-drm2", "intel-media-va-driver", "vainfo", "kodi", "vlc",
         ):
             with self.subTest(package=item):
                 self.assertIn(item, tv)
