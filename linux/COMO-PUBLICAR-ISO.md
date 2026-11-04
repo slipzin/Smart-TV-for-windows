@@ -4,7 +4,7 @@ Este documento descreve o fluxo oficial de compilação e publicação da ISO no
 
 ## Onde baixar
 
-Quando houver uma versão publicada, use a página [Releases](https://github.com/slipzin/Smart-TV-for-windows/releases). Baixe os dois arquivos anexados à versão:
+Quando houver uma versão Linux publicada, use a página [Releases](https://github.com/slipzin/Smart-TV-for-windows/releases) e escolha a prerelease com o título **Smart TV OS** (tag no formato `v0.1.0-alpha.1`). Não confunda com a Release **Smart TV for Windows 1.0**, que contém somente o ZIP da edição Windows. Baixe os dois arquivos anexados à prerelease Linux:
 
 - `SmartTV-OS-live-trixie-amd64.iso`
 - `SmartTV-OS-live-trixie-amd64.iso.sha256`
