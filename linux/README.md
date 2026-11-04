@@ -7,7 +7,9 @@ Esta pasta contém a edição Linux experimental do Smart TV for Windows. A inte
 - Backend HTTP limitado a 127.0.0.1:48765.
 - Descoberta de lançadores de aplicativos do Debian, do usuário e de instalações Flatpak.
 - Abertura segura de aplicativos sem shell.
-- Integração opcional com Steam Big Picture quando a Steam estiver instalada.
+- Steam Installer Debian pré-incluído (baixa o cliente por usuário na primeira abertura), Lutris, GameMode, MangoHud, Vulkan Tools e Mesa Vulkan.
+- Bluetooth via BlueZ/Blueman e biblioteca Jogos separada, com descoberta de Steam, Heroic, Lutris, Bottles, emuladores, jogos nativos e jogos presentes nas bibliotecas Steam.
+- Menu Ajustes do Início com opções GameMode/MangoHud; instalador opcional de Wine 32/64 bits, Steam Input udev, Heroic, Bottles, ProtonUp-Qt, Gamescope e emuladores.
 - Interface Smart TV em tela cheia usando Chromium e suporte à Gamepad API.
 - Base de ISO Live Debian 13 Trixie amd64 com KDE Plasma.
 - Loja KDE Discover, backend Flatpak e catálogo Flathub configurado na imagem.
@@ -20,6 +22,7 @@ Esta pasta contém a edição Linux experimental do Smart TV for Windows. A inte
 
 ➡️ **[Guia completo da ISO, pendrive, particionamento, loja e AirPlay](GUIA-INSTALACAO.md)**  
 ➡️ **[Visão do produto: interface premium, streaming, AirPlay, Android Cast e controle por celular](VISAO-TV-EXPERIENCIA.md)**  
+➡️ **[Integração gamer: Steam, Heroic, Lutris, Proton, Wine, controles e emuladores](gaming/README.md)**  
 ➡️ **[Cast nativo nos apps: destino TV Sala e compatibilidade por serviço](CAST-APPS-E-RECEPTORES.md)**
 
 O guia explica a diferença entre a ISO no pendrive e o espaço que deve ser reservado no HD/SSD, como conferir o BitLocker, liberar espaço no Windows, testar o modo Live e o que deve ser preservado no particionamento.
@@ -53,5 +56,7 @@ A imagem esperada é out/SmartTV-OS-live-trixie-amd64.iso.
 ## Testes do backend
 
     python3 -m unittest discover -s linux -p 'test_*.py'
+
+A camada gamer também depende da GPU/driver, das bibliotecas 32-bit, dos launchers e dos requisitos de cada jogo. Anti-cheat e DRM podem bloquear títulos no Wine/Proton. Emuladores não incluem ROMs, BIOS ou firmware.
 
 A ISO só deve ser considerada estável depois de testes de boot UEFI, dual boot com Windows 10/11, atualização do GRUB, áudio, controle USB/Bluetooth, Wi-Fi, codecs e aceleração gráfica.
