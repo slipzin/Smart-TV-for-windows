@@ -30,7 +30,8 @@ A ISO experimental está sendo preparada com:
 - **UxPlay + Avahi** — receptor inicial de AirPlay Mirror, com atalho manual protegido por PIN; não é AirPlay 2 completo.
 - **Flatpak e integração do Discover com Flatpak** — suporte para catálogo Flatpak; na compilação atual o repositório Flathub é habilitado na imagem.
 - **Kodi e VLC** — reprodução de mídia.
-- **Lutris, GameMode e MangoHud** — ferramentas relacionadas a jogos e desempenho.
+- **Modo TV leve** — interface, loja, Bluetooth, mídia e aceleração de vídeo; Moonlight/Steam Link podem ser instalados pela loja para jogar a partir de outro PC.
+- **Modo Console opcional** — instala Steam, Wine/Proton, Lutris, GameMode, MangoHud e emuladores somente quando o usuário solicitar.
 
 A interface Linux procura aplicativos que tenham lançadores de desktop compatíveis. A loja Discover pode instalar aplicativos do repositório Debian. Com o Flathub configurado, também pode apresentar aplicativos distribuídos como Flatpak.
 
