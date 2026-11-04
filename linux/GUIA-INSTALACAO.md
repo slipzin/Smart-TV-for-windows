@@ -381,9 +381,9 @@ A compatibilidade de Prime Video, Disney+, Max, YouTube, Spotify e cada outro se
 
 ### Android — o que já existe e o que ainda será desenvolvido
 
-O KDE Discover com o catálogo Flathub permite instalar aplicativos de recepção que usem protocolos abertos, como o **FCast Receiver**, quando disponível no catálogo. O envio depende de um aplicativo Android que ofereça suporte ao protocolo FCast; isso não transforma o Smart TV OS em Chromecast universal.
+O KDE Discover com o catálogo Flathub permite instalar aplicativos de recepção que usem protocolos abertos, como o **FCast Receiver**, quando disponível no catálogo. A imagem também prepara o **VibeCast** como receptor Google Cast com o player local anunciado como **TV Sala**. O envio depende de um aplicativo Android que ofereça suporte ao protocolo FCast; isso não transforma o Smart TV OS em Chromecast universal.
 
-O Google Cast dos aplicativos e o espelhamento completo da tela Android (Miracast/Smart View) são recursos separados. Eles ainda precisam de implementação e testes em diferentes celulares e placas Wi-Fi. Não prometa compatibilidade geral antes de validar o modelo do telefone, o adaptador Wi-Fi, o aplicativo e o serviço de streaming.
+O Google Cast dos aplicativos e o espelhamento completo da tela Android (Miracast/Smart View) são recursos separados. O receptor VibeCast está incluído, mas exige autenticação de dispositivo Cast válida em `~/.config/smart-tv/cast/certs.json`; esse arquivo privado não acompanha a ISO e não deve ser publicado. Sem esse material, o celular não consegue concluir a autenticação. Depois de configurado, a descoberta do dispositivo ainda depende do app remetente aceitar o receiver e do player/DRM suportar o serviço. Netflix não é provider listado pelo VibeCast v0.2.0. Não prometa compatibilidade geral antes de validar o modelo do telefone, o adaptador Wi-Fi, o aplicativo e o serviço de streaming. Consulte [a documentação do receptor TV Sala](cast/README.md).
 
 ### Controle da TV pelo celular
 
