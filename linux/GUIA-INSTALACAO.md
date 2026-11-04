@@ -27,6 +27,7 @@ A ISO experimental está sendo preparada com:
 - **Smart TV OS** — interface em tela cheia, com suporte a controle, teclado e mouse.
 - **Chromium** — usado para exibir a interface Smart TV.
 - **KDE Discover** — loja gráfica de aplicativos e atualizações do Debian.
+- **UxPlay + Avahi** — receptor inicial de AirPlay Mirror, com atalho manual protegido por PIN; não é AirPlay 2 completo.
 - **Flatpak e integração do Discover com Flatpak** — suporte para catálogo Flatpak; na compilação atual o repositório Flathub é habilitado na imagem.
 - **Kodi e VLC** — reprodução de mídia.
 - **Lutris, GameMode e MangoHud** — ferramentas relacionadas a jogos e desempenho.
@@ -317,7 +318,7 @@ Somente em uma máquina de teste ou depois que o instalador estiver validado:
 
 Se o Windows não aparecer no GRUB, não formate nada e não reinstale às pressas. O Windows Boot Manager pode continuar disponível pelo menu de boot do firmware. Procure suporte antes de executar comandos que alterem partições ou o bootloader.
 
-## 11. Usar a loja de aplicativos depois da instalação
+## 12. Usar a loja de aplicativos depois da instalação
 
 Depois que o Smart TV OS estiver instalado no disco e conectado à internet:
 
@@ -345,7 +346,7 @@ Depois, feche e abra o Discover novamente. O Flathub é uma fonte de terceiros: 
 Para o usuário, o detalhe técnico pode ser resumido assim: os programas e seus dados ocupam espaço no disco Linux que foi reservado na instalação. Não é necessário escolher ou criar uma partição diferente para cada aplicativo. Se o espaço Linux acabar, será necessário liberar espaço, ampliar a partição com cuidado ou mover uma biblioteca de jogos para outro volume.
 
 
-## 12. Receber mídia e conectar o celular
+## 13. Receber mídia e conectar o celular
 
 A ISO em desenvolvimento inclui uma primeira integração de recepção AirPlay, mas os protocolos têm compatibilidades diferentes. O menu e a documentação devem identificar qual tecnologia está ativa.
 
@@ -372,7 +373,7 @@ O Google Cast dos aplicativos e o espelhamento completo da tela Android (Miracas
 
 O controle remoto por QR code/PIN, com direcional, OK, voltar, início, volume e teclado para busca, está no plano de desenvolvimento. Não é uma função entregue nesta ISO experimental. No momento, use o controle USB/Bluetooth, teclado ou mouse.
 
-## 13. Solução de problemas
+## 14. Solução de problemas
 
 ### O pendrive não aparece no menu de boot
 
@@ -405,7 +406,7 @@ A interface lista aplicativos que fornecem um lançador Linux compatível. Feche
 
 Não formate nenhuma partição. Confira se o Windows Boot Manager ainda aparece no menu de boot do firmware. A correção do GRUB precisa ser feita com cuidado para não danificar a inicialização dos dois sistemas.
 
-## 14. Como relatar um problema
+## 15. Como relatar um problema
 
 Ao abrir uma issue no repositório, informe:
 
@@ -419,7 +420,7 @@ Ao abrir uma issue no repositório, informe:
 
 Não publique a chave BitLocker, números de série, senhas ou arquivos pessoais.
 
-## 15. Links úteis
+## 16. Links úteis
 
 - [Repositório Smart TV for Windows / Smart TV OS](https://github.com/slipzin/Smart-TV-for-windows)
 - [Execuções e download da ISO](https://github.com/slipzin/Smart-TV-for-windows/actions/workflows/linux-iso.yml)
