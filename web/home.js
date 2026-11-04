@@ -1743,7 +1743,12 @@
       pickShelf();
       TV.inputs(function (list2) {
         inputs = list2;
-        if (done) done();
+        if (TV.platform === 'linux') {
+          TV.profile(null, function (cfg) {
+            if (cfg) { experienceProfile = cfg.profile; gamingPrefs = cfg; renderTop(); }
+            if (done) done();
+          });
+        } else if (done) done();
       });
     });
   }
