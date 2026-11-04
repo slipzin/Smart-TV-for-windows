@@ -140,7 +140,7 @@ Comment=Instala Steam Input, Wine, Heroic, emuladores e ferramentas opcionais
 Exec=konsole -e pkexec /usr/local/bin/smart-tv-install-gaming
 Icon=applications-games
 Terminal=false
-Categories=Game;System;
+Categories=System;Utility;
 EOF
 done
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop"
