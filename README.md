@@ -56,6 +56,7 @@ A branch \`feature/linux-dual-boot-foundation\` inicia a migração para um sist
 **[Veja a visão completa do produto: interface premium, streaming, AirPlay, Android Cast e controle pelo celular](linux/VISAO-TV-EXPERIENCIA.md).**
 **[Veja a integração gamer Linux: jogos locais pela Steam, Proton, controles, Heroic e emuladores](linux/gaming/README.md).**  
 **[Veja como funcionará a transmissão dentro dos apps, com destino TV Sala](linux/CAST-APPS-E-RECEPTORES.md).**
+**[Veja os dois perfis de jogos Linux: Modo TV com streaming e Modo Console com jogos locais](linux/gaming/README.md).**
 
 Importante sobre as partições: a ISO é gravada no pendrive, não em uma partição do HD. A ISO experimental inclui UxPlay para AirPlay Mirror básico, ativado manualmente e protegido por PIN; Cast nativo dentro dos apps (destino TV Sala), Google Cast universal, Miracast receiver e controle remoto próprio pelo celular ainda estão em desenvolvimento. A Netflix limita atualmente o Cast móvel a determinados aparelhos; um receiver Linux genérico não tem suporte confirmado. Para um futuro dual boot, o Windows deve liberar espaço como **Não alocado**; o Linux será instalado nesse espaço em uma partição própria. O sistema e os aplicativos da loja usam essa partição Linux. Não formate a partição EFI ou as partições do Windows. Uma partição exclusiva para jogos é opcional.
 
