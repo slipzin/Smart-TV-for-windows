@@ -44,6 +44,23 @@ class DesktopTests(unittest.TestCase):
             with mock.patch("smarttv.shutil.which", return_value=None):
                 self.assertIsNone(smarttv.parse_desktop_file(path))
 
+    def test_moonlight_and_steam_link_are_streaming_clients(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            moonlight = self.write(root, "moonlight.desktop",
+                "[Desktop Entry]\nType=Application\nName=Moonlight\n"
+                "Exec=/usr/bin/true\nCategories=Game;Network;\n")
+            steam_link = self.write(root, "steam-link.desktop",
+                "[Desktop Entry]\nType=Application\nName=Steam Link\n"
+                "Exec=/usr/bin/true\nCategories=Game;\n")
+            with mock.patch("smarttv.shutil.which", return_value="/usr/bin/true"):
+                moon_app = smarttv.parse_desktop_file(moonlight)
+                link_app = smarttv.parse_desktop_file(steam_link)
+            self.assertTrue(moon_app["is_streaming_client"])
+            self.assertTrue(link_app["is_streaming_client"])
+            self.assertTrue(moon_app["is_game"])
+            self.assertFalse(moon_app["is_native_game"])
+
     def test_game_category_and_known_launchers_are_marked(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
