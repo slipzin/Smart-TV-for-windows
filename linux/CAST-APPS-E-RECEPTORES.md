@@ -64,6 +64,18 @@ Cada serviço precisa ter uma validação separada. Não basta testar YouTube ou
 
 Os serviços podem alterar suas políticas, receptores suportados, apps e planos. A matriz deve apontar para a documentação atual de cada fornecedor e ser atualizada antes de cada release.
 
+## Implementação selecionada para Linux: VibeCast
+
+O branch experimental do Smart TV OS agora compila o [VibeCast v0.2.0](https://github.com/emilsvennesson/vibecast/tree/v0.2.0), um projeto comunitário de código aberto que implementa Cast V2, autenticação de dispositivo e descoberta mDNS. O player local é ajustado para anunciar o nome **TV Sala**.
+
+Isso é uma implementação de compatibilidade de protocolo de terceiros, **não um Chromecast físico, Android TV nem um produto certificado/aprovado pelo Google**. A implementação ainda exige material de autenticação de dispositivo válido de um Cast real; não há credenciais incluídas na ISO ou no repositório. Sem esse material, apps remetentes rejeitam o receiver.
+
+O VibeCast v0.2.0 lista providers para YouTube, Prime Video, SVT Play, TV4 Play, Viaplay e DAZN. O README upstream descreve o player Browser como ferramenta de desenvolvimento/teste e exige Kodi 21.3+ para o player Kodi; Debian 13 Trixie fornece Kodi 21.2, então esta imagem usa o player web local como primeiro caminho de teste. DRM, codecs e reprodução de cada serviço ainda devem ser validados no hardware.
+
+Não há suporte Netflix listado nessa versão do VibeCast. A restrição de compatibilidade da Netflix permanece independente do Cast V2 genérico.
+
+Consulte [linux/cast/README.md](cast/README.md) para o estado da integração e as exigências de autenticação. Nunca coloque o arquivo privado de certificados no repositório.
+
 ## Arquitetura do Smart TV OS
 
 Desenvolver um **Cast Manager** separado do launcher:
