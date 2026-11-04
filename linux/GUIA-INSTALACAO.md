@@ -36,7 +36,7 @@ A interface Linux procura aplicativos que tenham lançadores de desktop compatí
 
 ### O que não está incluído ou não é garantido
 
-- **Steam Installer está incluído na ISO.** Na primeira abertura ele baixa e instala o cliente Steam na conta do usuário; os jogos são baixados diretamente para o disco Linux. Isso não inclui jogos nem contas Steam.
+- **A ISO inicia em Modo TV leve.** Steam, Wine/Proton, Lutris, GameMode, MangoHud e emuladores não são instalados por padrão. Para jogar pela rede, instale Moonlight ou Steam Link pelo KDE Discover. Para baixar jogos e executá-los localmente, selecione Modo Console em Ajustes do Início e rode o instalador gamer opcional a partir do desktop; o cliente Steam é então instalado na conta do usuário.
 - Nem todo aplicativo Windows tem versão Linux.
 - Compatibilidade de jogos depende de GPU, drivers, Proton e sistemas antitrapaça. Alguns jogos não funcionam no Linux.
 - Serviços de streaming podem ter limitações de DRM, resolução ou controle dependendo do serviço e do navegador.
