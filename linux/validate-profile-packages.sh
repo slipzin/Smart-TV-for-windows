@@ -22,6 +22,28 @@ mapfile -t FLATPAKS < <(read_manifest "$PROFILES/console-flatpaks.txt")
 
 export DEBIAN_FRONTEND=noninteractive
 dpkg --add-architecture i386
+
+# The Debian container may expose only main by default. Match the ISO's archive
+# areas so Steam (contrib) and firmware/graphics packages resolve in simulation.
+if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+  python3 - /etc/apt/sources.list.d/debian.sources <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+areas = ("main", "contrib", "non-free", "non-free-firmware")
+for index, line in enumerate(lines):
+    if line.startswith("Components:"):
+        existing = line.split(":", 1)[1].split()
+        lines[index] = "Components: " + " ".join(dict.fromkeys([*existing, *areas]))
+path.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+PY
+else
+  printf '%s\\n' 'deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware' \
+    > /etc/apt/sources.list.d/smarttv-validation.list
+fi
+dpkg --add-architecture i386
 apt-get update
 echo "Validando dependências APT do Modo Console (simulação; nenhum pacote gamer será instalado)..."
 apt-get -s --no-install-recommends install "${CONSOLE_APT[@]}"
