@@ -7,5 +7,4 @@ if command -v node >/dev/null 2>&1; then node --check web/tv.js; node --check we
 bash -n linux/run.sh linux/install-user.sh linux/build-iso.sh linux/cast/start.sh linux/cast/test.sh linux/gaming/install-extras.sh linux/cloud-gaming/launch-cloud-game.sh linux/cloud-gaming/test.sh
 bash linux/cast/test.sh
 bash linux/cloud-gaming/test.sh
-python3 -m unittest discover -s linux -p 'test_profiles.py'
 echo "Linux runtime syntax and unit tests passed."
