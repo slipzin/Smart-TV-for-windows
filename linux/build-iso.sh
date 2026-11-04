@@ -124,6 +124,27 @@ Categories=Network;AudioVideo;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop"
 
+install -D -m 0755 "$ROOT/linux/gaming/install-extras.sh" \
+  "$WORK/config/includes.chroot/usr/local/bin/smart-tv-install-gaming"
+install -D -m 0644 "$ROOT/linux/gaming/README.md" \
+  "$WORK/config/includes.chroot/usr/share/doc/smarttv-gaming/README.md"
+
+for destination in \
+  "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop" \
+  "$WORK/config/includes.chroot/usr/share/applications/smart-tv-install-gaming.desktop"; do
+cat > "$destination" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Instalar extras de jogos
+Comment=Instala Steam Input, Wine, Heroic, emuladores e ferramentas opcionais
+Exec=konsole -e pkexec /usr/local/bin/smart-tv-install-gaming
+Icon=applications-games
+Terminal=false
+Categories=Game;System;
+EOF
+done
+chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop"
+
 install -D -m 0755 "$ROOT/linux/cast/start.sh" \
   "$WORK/config/includes.chroot/usr/local/bin/smart-tv-cast"
 cp "$ROOT/linux/cast/README.md" \
@@ -148,6 +169,19 @@ if command -v flatpak >/dev/null 2>&1; then
 fi
 EOF
 chmod 0755 "$WORK/config/hooks/live/0500-flathub.hook.chroot"
+
+# Debian's Steam package installs the per-user client on first launch. Enable
+# i386 before installing it so the official 32-bit runtime dependencies resolve.
+cat > "$WORK/config/hooks/live/0550-steam-installer.hook.chroot" <<'EOF'
+#!/bin/sh
+set -eu
+dpkg --add-architecture i386
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends steam-installer
+rm -rf /var/lib/apt/lists/*
+EOF
+chmod 0755 "$WORK/config/hooks/live/0550-steam-installer.hook.chroot"
+
 echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/grub.d/50-smarttv-os-prober.cfg"
 
 cat > "$WORK/config/package-lists/smarttv.list.chroot" <<'EOF'
@@ -166,6 +200,8 @@ konsole
 dolphin
 network-manager
 avahi-daemon
+bluez
+blueman
 sudo
 python3
 chromium
