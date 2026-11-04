@@ -153,13 +153,11 @@ chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jog
 
 # Cloud gaming shortcuts live in the light TV profile and open dedicated
 # Chromium app windows. They do not install a game runtime or require a host PC.
-for provider in xbox geforcenow boosteroid moonlight steamlink; do
+for provider in xbox geforcenow boosteroid; do
   case "$provider" in
     xbox) name="Xbox Cloud Gaming"; comment="Jogue pela nuvem do Xbox"; icon="applications-games" ;;
-    geforcenow) name="GeForce NOW"; comment="Jogue pela nuvem com bibliotecas Steam habilitadas"; icon="applications-games" ;;
+    geforcenow) name="GeForce NOW - Steam Cloud Play"; comment="Jogue na nuvem os títulos Steam habilitados"; icon="applications-games" ;;
     boosteroid) name="Boosteroid"; comment="Jogue pela nuvem com sua biblioteca compatível"; icon="applications-games" ;;
-    moonlight) name="Moonlight"; comment="Transmita de outro PC com Sunshine"; icon="applications-games" ;;
-    steamlink) name="Steam Link"; comment="Transmita de outro PC executando Steam"; icon="applications-games" ;;
   esac
   cat > "$WORK/config/includes.chroot/usr/share/applications/smart-tv-cloud-$provider.desktop" <<EOF
 [Desktop Entry]
