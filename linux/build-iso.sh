@@ -128,6 +128,12 @@ install -D -m 0755 "$ROOT/linux/gaming/install-extras.sh" \
   "$WORK/config/includes.chroot/usr/local/bin/smart-tv-install-gaming"
 install -D -m 0644 "$ROOT/linux/gaming/README.md" \
   "$WORK/config/includes.chroot/usr/share/doc/smarttv-gaming/README.md"
+for manifest in console-apt-packages.txt console-flatpaks.txt console-backports-packages.txt; do
+  install -D -m 0644 "$ROOT/linux/profiles/$manifest" \
+    "$WORK/config/includes.chroot/usr/share/smarttv-gaming/$manifest"
+done
+install -D -m 0755 "$ROOT/linux/cloud-gaming/launch-cloud-game.sh" \
+  "$WORK/config/includes.chroot/usr/local/bin/smart-tv-cloud-game"
 
 for destination in \
   "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop" \
@@ -144,6 +150,28 @@ Categories=System;Utility;
 EOF
 done
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop"
+
+# Cloud gaming shortcuts live in the light TV profile and open dedicated
+# Chromium app windows. They do not install a game runtime or require a host PC.
+for provider in xbox geforcenow boosteroid moonlight steamlink; do
+  case "$provider" in
+    xbox) name="Xbox Cloud Gaming"; comment="Jogue pela nuvem do Xbox"; icon="applications-games" ;;
+    geforcenow) name="GeForce NOW"; comment="Jogue pela nuvem com bibliotecas Steam habilitadas"; icon="applications-games" ;;
+    boosteroid) name="Boosteroid"; comment="Jogue pela nuvem com sua biblioteca compatível"; icon="applications-games" ;;
+    moonlight) name="Moonlight"; comment="Transmita de outro PC com Sunshine"; icon="applications-games" ;;
+    steamlink) name="Steam Link"; comment="Transmita de outro PC executando Steam"; icon="applications-games" ;;
+  esac
+  cat > "$WORK/config/includes.chroot/usr/share/applications/smart-tv-cloud-$provider.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$name
+Comment=$comment
+Exec=/usr/local/bin/smart-tv-cloud-game $provider
+Icon=$icon
+Terminal=false
+Categories=Game;Network;
+EOF
+done
 
 install -D -m 0755 "$ROOT/linux/cast/start.sh" \
   "$WORK/config/includes.chroot/usr/local/bin/smart-tv-cast"
@@ -172,56 +200,8 @@ chmod 0755 "$WORK/config/hooks/live/0500-flathub.hook.chroot"
 
 echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/grub.d/50-smarttv-os-prober.cfg"
 
-cat > "$WORK/config/package-lists/smarttv.list.chroot" <<'EOF'
-live-boot
-live-config
-live-config-systemd
-systemd-sysv
-plasma-desktop
-plasma-workspace
-plasma-nm
-kwin-x11
-sddm
-xserver-xorg
-xwayland
-konsole
-dolphin
-network-manager
-avahi-daemon
-pipewire-audio
-pipewire-pulse
-wireplumber
-udisks2
-xdg-desktop-portal
-xdg-desktop-portal-kde
-bluez
-blueman
-steam-devices
-sudo
-python3
-chromium
-curl
-flatpak
-firmware-linux
-firmware-linux-nonfree
-mesa-vulkan-drivers
-vlc
-kodi
-uxplay
-gstreamer1.0-libav
-gstreamer1.0-plugins-good
-plasma-discover
-plasma-discover-backend-flatpak
-calamares
-calamares-settings-debian
-os-prober
-ntfs-3g
-parted
-dosfstools
-btrfs-progs
-grub-efi-amd64
-shim-signed
-EOF
+install -D -m 0644 "$ROOT/linux/profiles/tv-packages.txt" \
+  "$WORK/config/package-lists/smarttv.list.chroot"
 
 lb config \
   --distribution "$DIST" \
