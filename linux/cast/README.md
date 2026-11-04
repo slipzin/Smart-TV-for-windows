@@ -1,6 +1,6 @@
 # Receptor Google Cast — TV Sala
 
-Esta integração usa o projeto open source [VibeCast](https://github.com/emilsvennesson/vibecast), fixado na versão v0.2.0 e compilado durante a geração da ISO.
+Esta integração usa o projeto comunitário open source [VibeCast](https://github.com/emilsvennesson/vibecast), fixado na versão v0.2.0 e compilado durante a geração da ISO. É uma implementação Cast V2 de terceiros, não um produto certificado ou aprovado pelo Google.
 
 ## O que a integração prepara
 
@@ -14,7 +14,7 @@ Esta integração usa o projeto open source [VibeCast](https://github.com/emilsv
 
 O VibeCast exige material de autenticação de dispositivo Google Cast válido, incluindo certificado/cadeia e resposta de autenticação assinada. Esse material não está incluído no código-fonte nem nos releases upstream. Sem credenciais válidas, aplicativos remetentes podem rejeitar o dispositivo.
 
-A ISO **não inclui**, inventa, copia nem publica esse material. O usuário deve possuir um arquivo de autenticação que esteja autorizado a usar e guardá-lo somente no computador, fora do repositório.
+A ISO **não inclui**, inventa, copia nem publica esse material. O usuário deve possuir um arquivo de autenticação que esteja autorizado a usar e guardá-lo somente no computador, fora do repositório. O Google Cast Developer Console registra apps e aparelhos Cast compatíveis para testes; ele não transforma por si só um PC Linux genérico em um dispositivo certificado nem fornece ao build uma identidade Cast de hardware.
 
 Caminho esperado:
 
