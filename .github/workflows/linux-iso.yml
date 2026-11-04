@@ -110,15 +110,165 @@ jobs:
               ls -lh "$ISO" "$ISO.sha256" "$ARCHIVE.sha256" "${ARCHIVE_FILES[@]}"
             '
 
-      - name: Upload ISO, 7z archive and checksums
+      - name: Split ISO into downloadable parts (400 MiB each)
+        run: |
+          set -euo pipefail
+          mkdir -p out/iso-parts
+          split -b 400m -d -a 3 out/SmartTV-OS-live-trixie-amd64.iso out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-
+          cp out/SmartTV-OS-live-trixie-amd64.iso.sha256 out/iso-parts/
+          sha256sum out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-* > out/iso-parts/PARTS.sha256
+
+      - name: Upload ISO part 000
         uses: actions/upload-artifact@v4
         with:
-          name: SmartTV-OS-Live-Debian13-amd64
+          name: SmartTV-OS-ISO-part-000
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-000
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 001
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-001
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-001
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 002
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-002
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-002
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 003
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-003
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-003
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 004
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-004
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-004
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 005
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-005
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-005
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 006
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-006
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-006
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 007
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-007
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-007
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 008
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-008
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-008
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 009
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-009
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-009
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 010
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-010
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-010
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 011
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-011
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-011
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 012
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-012
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-012
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 013
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-013
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-013
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 014
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-014
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-014
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO part 015
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-part-015
+          path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-015
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload ISO checksums and part manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-checksums
           path: |
-            out/SmartTV-OS-live-trixie-amd64.iso
-            out/SmartTV-OS-live-trixie-amd64.iso.sha256
-            out/SmartTV-OS-live-trixie-amd64.7z
-            out/SmartTV-OS-live-trixie-amd64.7z.*
+            out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.sha256
+            out/iso-parts/PARTS.sha256
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
