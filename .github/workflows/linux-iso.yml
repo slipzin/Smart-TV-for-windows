@@ -53,6 +53,7 @@ jobs:
                 grub-pc-bin \
                 isolinux \
                 live-build \
+                flatpak \
                 mtools \
                 rsync \
                 squashfs-tools \
@@ -61,6 +62,7 @@ jobs:
                 xorriso \
                 python3
               linux/test.sh
+              linux/validate-profile-packages.sh
               linux/build-iso.sh
               cd out
               sha256sum SmartTV-OS-live-trixie-amd64.iso > SmartTV-OS-live-trixie-amd64.iso.sha256
