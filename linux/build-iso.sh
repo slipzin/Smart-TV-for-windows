@@ -90,6 +90,8 @@ mangohud
 lutris
 vlc
 kodi
+plasma-discover
+plasma-discover-backend-flatpak
 calamares
 calamares-settings-debian
 os-prober
