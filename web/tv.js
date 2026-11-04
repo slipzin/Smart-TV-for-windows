@@ -633,7 +633,7 @@ var TV = (function () {
 
     /** PC gaming options: read the state or update one option and return capabilities. */
     gaming: function (key, enabled, done) {
-      if (!pc) { if (done) done(null); return; }
+      if (!linux) { if (done) done(null); return; }
       var path = '/api/gaming';
       if (key) path += '?key=' + encodeURIComponent(key) + '&enabled=' + (enabled ? '1' : '0');
       pcApi(path, function (res) { if (done) done(res && res.available ? res : null); });
