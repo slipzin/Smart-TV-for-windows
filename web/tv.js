@@ -631,6 +631,14 @@ var TV = (function () {
       pcApi('/api/autostart' + (on === null ? '' : '?on=' + (on ? '1' : '0')), function (res) { if (done) done(res ? !!res.on : null); });
     },
 
+    /** PC gaming options: read the state or update one option and return capabilities. */
+    gaming: function (key, enabled, done) {
+      if (!pc) { if (done) done(null); return; }
+      var path = '/api/gaming';
+      if (key) path += '?key=' + encodeURIComponent(key) + '&enabled=' + (enabled ? '1' : '0');
+      pcApi(path, function (res) { if (done) done(res && res.available ? res : null); });
+    },
+
     /** PC: leaves TV mode (the home screen closes, the computer's desktop is back). */
     quit: function () { if (pc) pcApi('/api/quit', null); },
 
