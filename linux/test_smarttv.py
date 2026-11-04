@@ -61,6 +61,28 @@ class DesktopTests(unittest.TestCase):
             self.assertTrue(moon_app["is_game"])
             self.assertFalse(moon_app["is_native_game"])
 
+    def test_cloud_game_services_are_classified_separately_from_remote_pc_clients(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            xbox = self.write(root, "xbox.desktop",
+                "[Desktop Entry]\nType=Application\nName=Xbox Cloud Gaming\n"
+                "Exec=/usr/bin/true\nCategories=Game;Network;\n")
+            geforce = self.write(root, "geforce.desktop",
+                "[Desktop Entry]\nType=Application\nName=GeForce NOW - Steam Cloud Play\n"
+                "Exec=/usr/bin/true\nCategories=Game;Network;\n")
+            moonlight = self.write(root, "moonlight.desktop",
+                "[Desktop Entry]\nType=Application\nName=Moonlight\n"
+                "Exec=/usr/bin/true\nCategories=Game;Network;\n")
+            with mock.patch("smarttv.shutil.which", return_value="/usr/bin/true"):
+                xbox_app = smarttv.parse_desktop_file(xbox)
+                geforce_app = smarttv.parse_desktop_file(geforce)
+                moonlight_app = smarttv.parse_desktop_file(moonlight)
+            self.assertTrue(xbox_app["is_game"])
+            self.assertTrue(xbox_app["is_cloud_game"])
+            self.assertTrue(geforce_app["is_cloud_game"])
+            self.assertFalse(moonlight_app["is_cloud_game"])
+            self.assertTrue(moonlight_app["is_streaming_client"])
+
     def test_game_category_and_known_launchers_are_marked(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -203,6 +225,17 @@ class HttpTests(unittest.TestCase):
             status, _, body = self.get("/api/apps")
         self.assertEqual(status, 200)
         self.assertTrue(json.loads(body.decode("utf-8"))["apps"][0]["is_game"])
+
+    def test_app_catalogue_returns_cloud_game_metadata(self):
+        self.server.apps = [{"id": "xboxcloud", "title": "Xbox Cloud Gaming",
+                             "icon": "", "color": "#000", "is_game": True,
+                             "is_cloud_game": True, "is_streaming_client": False}]
+        with mock.patch("smarttv.discover_apps", return_value=self.server.apps):
+            status, _, body = self.get("/api/apps")
+        self.assertEqual(status, 200)
+        app = json.loads(body.decode("utf-8"))["apps"][0]
+        self.assertTrue(app["is_cloud_game"])
+        self.assertFalse(app["is_streaming_client"])
 
     def test_gaming_api_updates_valid_preferences(self):
         with mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": self.temp.name}):
