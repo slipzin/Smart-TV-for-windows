@@ -90,7 +90,12 @@ A gravação da ISO apaga todo o conteúdo do pendrive. Confirme que escolheu o 
 
 ## 5. Baixar a ISO
 
-A imagem é disponibilizada como artefato do GitHub Actions:
+A forma preferencial de distribuição é a página de [Releases](https://github.com/slipzin/Smart-TV-for-windows/releases). Quando houver uma versão publicada, abra a versão mais recente e baixe os dois arquivos anexados:
+
+- `SmartTV-OS-live-trixie-amd64.iso`
+- `SmartTV-OS-live-trixie-amd64.iso.sha256`
+
+Se ainda não houver uma Release, use o artefato temporário do GitHub Actions:
 
 1. Abra a página de [execuções do workflow de criação da ISO](https://github.com/slipzin/Smart-TV-for-windows/actions/workflows/linux-iso.yml).
 2. Entre na execução mais recente da branch **feature/linux-dual-boot-foundation** que terminou com **Success**.
@@ -98,7 +103,7 @@ A imagem é disponibilizada como artefato do GitHub Actions:
 4. Baixe **SmartTV-OS-Live-Debian13-amd64**.
 5. Extraia o ZIP. Ele deve conter a ISO e seu arquivo SHA-256.
 
-Se a execução estiver em andamento, falhou ou não mostrar a seção Artifacts, ainda não há uma ISO pronta naquela execução. Não use artefatos de uma compilação que falhou.
+Se a execução estiver em andamento, falhou ou não mostrar a seção Artifacts, ainda não há uma ISO pronta naquela execução. Não use artefatos de uma compilação que falhou. O artefato temporário expira após 30 dias; Releases são o canal permanente. Veja [como publicar uma nova versão](COMO-PUBLICAR-ISO.md).
 
 O nome esperado da imagem é:
 
