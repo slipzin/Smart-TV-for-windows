@@ -52,9 +52,10 @@ A branch \`feature/linux-dual-boot-foundation\` inicia a migração para um sist
 
 > **Atenção:** a ISO é experimental. O instalador Calamares usa uma configuração genérica e o fluxo de instalação permanente ao lado do Windows ainda não foi validado em hardware real. A recomendação atual é testar pelo pendrive no modo Live; não instale no disco principal com Windows até que o procedimento seja validado.
 
-**[Leia o guia completo da ISO, criação do pendrive, espaço em disco, instalação e dual boot](linux/GUIA-INSTALACAO.md).**
+**[Leia o guia completo da ISO, criação do pendrive, espaço em disco, instalação, loja e AirPlay](linux/GUIA-INSTALACAO.md).**  
+**[Veja a visão completa do produto: interface premium, streaming, AirPlay, Android Cast e controle pelo celular](linux/VISAO-TV-EXPERIENCIA.md).**
 
-Importante sobre as partições: a ISO é gravada no pendrive, não em uma partição do HD. Para um futuro dual boot, o Windows deve liberar espaço como **Não alocado**; o Linux será instalado nesse espaço em uma partição própria. O sistema e os aplicativos da loja usam essa partição Linux. Não formate a partição EFI ou as partições do Windows. Uma partição exclusiva para jogos é opcional.
+Importante sobre as partições: a ISO é gravada no pendrive, não em uma partição do HD. A ISO experimental inclui UxPlay para AirPlay Mirror básico, ativado manualmente e protegido por PIN; Google Cast universal, Miracast receiver e controle remoto próprio pelo celular ainda estão em desenvolvimento. Para um futuro dual boot, o Windows deve liberar espaço como **Não alocado**; o Linux será instalado nesse espaço em uma partição própria. O sistema e os aplicativos da loja usam essa partição Linux. Não formate a partição EFI ou as partições do Windows. Uma partição exclusiva para jogos é opcional.
 
 Para testar o backend diretamente em Debian 13:
 
