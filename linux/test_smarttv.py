@@ -73,7 +73,7 @@ class DesktopTests(unittest.TestCase):
             self.assertEqual(len(games), 1)
             self.assertEqual(games[0]["id"], "steam-game:1234")
             self.assertEqual(games[0]["title"], "Example Game")
-            self.assertEqual(games[0]["argv"][1], "steam://rungameid/1234")
+            self.assertEqual(games[0]["argv"], ["steam", "-bigpicture", "-applaunch", "1234"])
 
     def test_gaming_preferences_are_private_and_persistent(self):
         with tempfile.TemporaryDirectory() as d:
