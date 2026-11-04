@@ -801,10 +801,12 @@
         if (autostartOn === null) return;
         TV.autostart(!autostartOn, function (on) { if (on !== null) autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
       }});
-    rows.push({label: tr('GameMode'), toggle: gamingPrefs.gamemode, dim: !gamingPrefs.available.gamemode,
-      step: function () { if (gamingPrefs.available.gamemode) TV.gaming('gamemode', !gamingPrefs.gamemode, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
-    rows.push({label: tr('MangoHud overlay'), toggle: gamingPrefs.mangohud, dim: !gamingPrefs.available.mangohud,
-      step: function () { if (gamingPrefs.available.mangohud) TV.gaming('mangohud', !gamingPrefs.mangohud, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+    if (TV.platform === 'linux') {
+      rows.push({label: tr('GameMode'), toggle: gamingPrefs.gamemode, dim: !gamingPrefs.available.gamemode,
+        step: function () { if (gamingPrefs.available.gamemode) TV.gaming('gamemode', !gamingPrefs.gamemode, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+      rows.push({label: tr('MangoHud overlay'), toggle: gamingPrefs.mangohud, dim: !gamingPrefs.available.mangohud,
+        step: function () { if (gamingPrefs.available.mangohud) TV.gaming('mangohud', !gamingPrefs.mangohud, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+    }
     rows.push({label: tr('Leave TV mode'), value: '›', step: function (d) { if (d >= 0) TV.quit(); }});
     return rows;
   }
@@ -908,7 +910,7 @@
     st.row = 0;
     if (TV.name === 'pc') {
       TV.autostart(null, function (on) { autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
-      TV.gaming(null, null, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); });
+      if (TV.platform === 'linux') TV.gaming(null, null, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); });
     }
     renderSettings();
     setClass($('settings'), 'open', true);
@@ -1353,7 +1355,8 @@
     switch (st.zone) {
       case Z.TOP:
         if (st.top < 3) return;
-        if (st.top === 3 && TV.name === 'pc') openApps(true);
+        if (st.top === 3 && TV.name === 'pc' && TV.platform === 'linux') openApps(true);
+        else if (st.top === 3 && TV.name === 'pc') launcher('steam', tr('Games'))();
         else if (st.top === 3) { var live = liveTV(); if (live) launcher(live.id, tr('Live TV'))(); }
         else if (st.top === 4) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
         else openSettings();
