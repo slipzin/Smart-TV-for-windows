@@ -726,7 +726,7 @@
     var empty = sheet.querySelector('.empty');
     if (empty) sheet.removeChild(empty);
     if (appsViewMode !== 'all' && !appsViewItems.length) {
-      var message = appsViewMode === 'streaming' ? 'Install Moonlight or Steam Link from Discover to play games from another PC.' : 'No locally installed games were found. Switch to Console mode and install the gaming components.';
+      var message = appsViewMode === 'streaming' ? 'Install Moonlight or Steam Link from Discover to play games from another PC.' : 'No local games found. Open Install gaming extras in All Apps, then install games in Steam or another launcher.';
       empty = el('div', 'empty', sheet, tr(message));
     }
     for (var i = 0; i < appsViewItems.length; i++) {
