@@ -48,23 +48,23 @@ ver na tela: eles aparecem sozinhos.
 
 ## Edição Linux experimental (dual boot em desenvolvimento)
 
-A branch `feature/linux-dual-boot-foundation` inicia a migração para um sistema Linux independente, sem remover a edição Windows. Ela preserva a interface web, adiciona um backend Linux com descoberta de aplicativos nativos/Flatpak, integração com Steam Big Picture e uma base para ISO Live Debian 13.7 amd64.
+A branch \`feature/linux-dual-boot-foundation\` inicia a migração para um sistema Linux independente, sem remover a edição Windows. Ela preserva a interface web, adiciona um backend Linux para aplicativos nativos/Flatpak e prepara uma ISO Live Debian 13.7 amd64 com KDE Plasma e a loja KDE Discover.
 
-**Ainda não é uma ISO estável nem um instalador dual boot validado.** A imagem experimental usa Calamares e precisa de testes em máquinas UEFI reais antes de instalação permanente. Veja [linux/README.md](linux/README.md) para os requisitos, a construção da imagem, os cuidados com partições e as limitações atuais.
+> **Atenção:** a ISO é experimental. O instalador Calamares usa uma configuração genérica e o fluxo de instalação permanente ao lado do Windows ainda não foi validado em hardware real. A recomendação atual é testar pelo pendrive no modo Live; não instale no disco principal com Windows até que o procedimento seja validado.
+
+**[Leia o guia completo da ISO, criação do pendrive, espaço em disco, instalação e dual boot](linux/GUIA-INSTALACAO.md).**
+
+Importante sobre as partições: a ISO é gravada no pendrive, não em uma partição do HD. Para um futuro dual boot, o Windows deve liberar espaço como **Não alocado**; o Linux será instalado nesse espaço em uma partição própria. O sistema e os aplicativos da loja usam essa partição Linux. Não formate a partição EFI ou as partições do Windows. Uma partição exclusiva para jogos é opcional.
 
 Para testar o backend diretamente em Debian 13:
 
-```bash
-sudo apt install python3 chromium curl
-./linux/run.sh
-```
+    sudo apt install python3 chromium curl
+    ./linux/run.sh
 
 Para construir a ISO experimental em Debian 13:
 
-```bash
-sudo apt install live-build debootstrap squashfs-tools xorriso
-sudo linux/build-iso.sh
-```
+    sudo apt install live-build debootstrap squashfs-tools xorriso
+    sudo linux/build-iso.sh
 
 ## Licença
 
