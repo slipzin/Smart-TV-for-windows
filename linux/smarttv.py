@@ -33,11 +33,25 @@ KNOWN = [
  ("steam",("steam",),"#1B2838","icons/steam.svg"),
  ("xbox",("xbox",),"#107C10",""),
  ("battlenet",("battle.net","battle net"),"#148EFF",""),
- ("epic",("epic games","heroic games launcher","heroic"),"#2A2A2A",""),
+ ("epic",("epic games store","epic games"),"#2A2A2A",""),
+ ("heroic",("heroic games launcher","heroic"),"#7C4DFF",""),
  ("lutris",("lutris",),"#F0A000",""),
  ("bottles",("bottles",),"#7B61A8",""),
  ("moonlight",("moonlight",),"#5B7CFA",""),
+ ("retroarch",("retroarch",),"#D94B27",""),
+ ("dolphin",("dolphin emulator",),"#1E88E5",""),
+ ("pcsx2",("pcsx2",),"#1565C0",""),
+ ("ppsspp",("ppsspp",),"#607D8B",""),
+ ("rpcs3",("rpcs3",),"#4A6FA5",""),
+ ("scummvm",("scummvm",),"#333333",""),
+ ("dosbox",("dosbox",),"#455A64",""),
 ]
+
+GAME_LAUNCHER_IDS = {
+    "steam", "lutris", "heroic", "epic", "battlenet", "bottles", "moonlight",
+    "retroarch", "dolphin", "pcsx2", "ppsspp", "rpcs3", "scummvm", "dosbox",
+}
+
 def norm(s): return re.sub(r"[^a-z0-9]+"," ",(s or "").casefold()).strip()
 def canonical_app(name):
     n=norm(name)
@@ -64,7 +78,11 @@ def parse_desktop_file(path):
     elif shutil.which(exe) is None: return None
     found=canonical_app(name)
     app_id,color,icon=found if found else ("desktop:"+path.stem,"#344054","")
+    categories={value.strip().casefold() for value in e.get("Categories","").split(";") if value.strip()}
+    is_launcher = app_id in GAME_LAUNCHER_IDS
+    is_game = "game" in categories or is_launcher
     return {"id":app_id,"title":name,"icon":icon,"color":color,
+            "is_game":is_game,"is_native_game":("game" in categories and not is_launcher),
             "argv":argv,"desktop_file":str(path)}
 
 def desktop_dirs(home):
@@ -73,16 +91,70 @@ def desktop_dirs(home):
            Path("/var/lib/flatpak/exports/share/applications")]
     return [p for p in paths if p.is_dir()]
 
-def has_steam_game(home, app_id):
+def steam_library_roots(home):
     roots=[home/".steam/steam",home/".local/share/Steam",
            home/".var/app/com.valvesoftware.Steam/.local/share/Steam"]
     for root in list(roots):
         vdf=root/"steamapps/libraryfolders.vdf"
         try:
             for raw in re.findall(r'"path"\s+"([^"]+)"',vdf.read_text(encoding="utf-8",errors="replace")):
-                roots.append(Path(raw.replace("\\\\","\\")))
+                candidate=Path(raw.replace("\\\\","\\"))
+                if candidate not in roots: roots.append(candidate)
         except OSError: pass
-    return any((r/"steamapps"/("appmanifest_"+app_id+".acf")).is_file() for r in roots)
+    return roots
+
+
+def steam_games(home):
+    games=[]; seen=set()
+    for root in steam_library_roots(home):
+        for manifest in sorted((root/"steamapps").glob("appmanifest_*.acf")):
+            try: body=manifest.read_text(encoding="utf-8",errors="replace")
+            except OSError: continue
+            app=re.search(r'"appid"\s+"(\d+)"',body)
+            name=re.search(r'"name"\s+"((?:\\.|[^"])*)"',body)
+            if not app or not name or app.group(1) in seen: continue
+            app_id=app.group(1); seen.add(app_id)
+            title=re.sub(r'\\(["\\])',r'\1',name.group(1)).strip()
+            if not title: continue
+            games.append({"id":"steam-game:"+app_id,"title":title,"icon":"","color":"#1B2838",
+                          "is_game":True,"is_native_game":False,
+                          "argv":["xdg-open","steam://rungameid/"+app_id],"desktop_file":""})
+    return games
+
+
+def gaming_config_path(home=None):
+    home=home or Path.home()
+    base=Path(os.environ.get("XDG_CONFIG_HOME",str(home/".config")))
+    return base/"smart-tv"/"gaming.json"
+
+
+def gaming_settings(home=None):
+    defaults={"gamemode":True,"mangohud":False}
+    try:
+        saved=json.loads(gaming_config_path(home).read_text(encoding="utf-8"))
+        if isinstance(saved,dict):
+            for key in defaults:
+                if isinstance(saved.get(key),bool): defaults[key]=saved[key]
+    except (OSError,ValueError,TypeError): pass
+    return defaults
+
+
+def set_gaming_setting(key, enabled, home=None):
+    if key not in ("gamemode","mangohud") or not isinstance(enabled,bool): return False
+    settings=gaming_settings(home); settings[key]=enabled
+    path=gaming_config_path(home); path.parent.mkdir(parents=True,exist_ok=True)
+    temp=path.with_suffix(".json.tmp")
+    temp.write_text(json.dumps(settings,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    os.chmod(temp,0o600); temp.replace(path)
+    return True
+
+
+def gaming_info(home=None):
+    return {**gaming_settings(home),"available":{
+        "gamemode":shutil.which("gamemoderun") is not None,
+        "mangohud":shutil.which("mangohud") is not None,
+        "gamescope":shutil.which("gamescope") is not None}}
+
 
 def discover_apps(home=None):
     home=home or Path.home(); apps={}
@@ -93,18 +165,26 @@ def discover_apps(home=None):
     if "steam" in apps:
         apps["steam"]["title"]="Steam"
         if "-bigpicture" not in apps["steam"]["argv"]: apps["steam"]["argv"].append("-bigpicture")
-        if has_steam_game(home,"1938090"):
-            apps["cod"]={"id":"cod","title":"Call of Duty","icon":"","color":"#2B2B2B",
-                         "argv":["xdg-open","steam://rungameid/1938090"],"desktop_file":""}
+    for game in steam_games(home):
+        if game["id"] not in apps: apps[game["id"]]=game
     return sorted(apps.values(),key=lambda a:a["title"].casefold())
+
 
 def launch_app(apps, app_id):
     item=next((a for a in apps if a["id"]==app_id),None)
     if not item: return False
-    argv=item.get("argv") or []
-    if not argv or BAD.search("\0".join(argv)): return False
+    argv=list(item.get("argv") or [])
+    if not argv or BAD.search("\\0".join(argv)): return False
+    env=os.environ.copy()
+    if item.get("is_native_game"):
+        settings=gaming_settings()
+        if settings["gamemode"]:
+            gamemoderun=shutil.which("gamemoderun")
+            if gamemoderun: argv=[gamemoderun,*argv]
+        if settings["mangohud"] and shutil.which("mangohud"):
+            env["MANGOHUD"]="1"; env["MANGOHUD_DLSYM"]="1"
     try:
-        subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
+        subprocess.Popen(argv,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
                          start_new_session=True,close_fds=True)
         return True
     except (OSError,ValueError): return False
@@ -165,7 +245,13 @@ class Handler(BaseHTTPRequestHandler):
         if fetch_site and fetch_site not in ("same-origin","none"): self.js({"error":"same-origin requests only"},403); return
         u=urllib.parse.urlsplit(self.path); path=urllib.parse.unquote(u.path); q=urllib.parse.parse_qs(u.query,keep_blank_values=True)
         if path=="/api/apps":
-            self.js({"apps":[{k:a[k] for k in ("id","title","icon","color")} for a in self.server.apps]})
+            self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game")} for a in self.server.apps]})
+        elif path=="/api/gaming":
+            key=q.get("key",[""])[0]; raw=q.get("enabled",[""])[0]
+            if key:
+                if raw not in ("0","1") or not set_gaming_setting(key,raw=="1"):
+                    self.js({"ok":False,"error":"invalid gaming setting"},400); return
+            self.js(gaming_info())
         elif path=="/api/open": self.js({"ok":launch_app(self.server.apps,q.get("id",[""])[0])})
         elif path=="/api/settings": self.js({"ok":self.open_settings()})
         elif path=="/api/about":
