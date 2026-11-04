@@ -631,6 +631,14 @@ var TV = (function () {
       pcApi('/api/autostart' + (on === null ? '' : '?on=' + (on ? '1' : '0')), function (res) { if (done) done(res ? !!res.on : null); });
     },
 
+    /** Linux profile: TV streaming or local console gaming. */
+    profile: function (mode, done) {
+      if (!linux) { if (done) done(null); return; }
+      var path = '/api/profile';
+      if (mode) path += '?mode=' + encodeURIComponent(mode);
+      pcApi(path, function (res) { if (done) done(res && res.profile ? res : null); });
+    },
+
     /** PC gaming options: read the state or update one option and return capabilities. */
     gaming: function (key, enabled, done) {
       if (!linux) { if (done) done(null); return; }
