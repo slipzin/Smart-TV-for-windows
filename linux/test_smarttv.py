@@ -44,6 +44,66 @@ class DesktopTests(unittest.TestCase):
             with mock.patch("smarttv.shutil.which", return_value=None):
                 self.assertIsNone(smarttv.parse_desktop_file(path))
 
+    def test_game_category_and_known_launchers_are_marked(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            native = self.write(root, "native.desktop",
+                "[Desktop Entry]\\nType=Application\\nName=SuperTuxKart\\n"
+                "Exec=/usr/bin/true\\nCategories=Game;ArcadeGame;\\n")
+            heroic = self.write(root, "heroic.desktop",
+                "[Desktop Entry]\\nType=Application\\nName=Heroic Games Launcher\\n"
+                "Exec=/usr/bin/true\\nCategories=Utility;\\n")
+            with mock.patch("smarttv.shutil.which", return_value="/usr/bin/true"):
+                native_app = smarttv.parse_desktop_file(native)
+                heroic_app = smarttv.parse_desktop_file(heroic)
+            self.assertTrue(native_app["is_game"])
+            self.assertTrue(native_app["is_native_game"])
+            self.assertTrue(heroic_app["is_game"])
+            self.assertFalse(heroic_app["is_native_game"])
+
+    def test_steam_library_manifests_become_game_entries(self):
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d)
+            steamapps = home / ".steam/steam/steamapps"
+            steamapps.mkdir(parents=True)
+            (steamapps / "appmanifest_1234.acf").write_text(
+                '"AppState"\\n{\\n  "appid" "1234"\\n  "name" "Example Game"\\n}\\n',
+                encoding="utf-8")
+            games = smarttv.steam_games(home)
+            self.assertEqual(len(games), 1)
+            self.assertEqual(games[0]["id"], "steam-game:1234")
+            self.assertEqual(games[0]["title"], "Example Game")
+            self.assertEqual(games[0]["argv"][1], "steam://rungameid/1234")
+
+    def test_gaming_preferences_are_private_and_persistent(self):
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d)
+            self.assertTrue(smarttv.set_gaming_setting("mangohud", True, home))
+            path = home / ".config/smart-tv/gaming.json"
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            self.assertTrue(smarttv.gaming_settings(home)["mangohud"])
+            self.assertFalse(smarttv.set_gaming_setting("unknown", True, home))
+
+    def test_native_games_get_optional_performance_wrappers(self):
+        item = {"id": "native", "is_native_game": True, "argv": ["/usr/games/example"]}
+        which = { "gamemoderun": "/usr/bin/gamemoderun", "mangohud": "/usr/bin/mangohud" }
+        with mock.patch("smarttv.gaming_settings", return_value={"gamemode": True, "mangohud": True}), \\
+             mock.patch("smarttv.shutil.which", side_effect=lambda name: which.get(name)), \\
+             mock.patch("smarttv.subprocess.Popen") as process:
+            self.assertTrue(smarttv.launch_app([item], "native"))
+        argv = process.call_args.args[0]
+        env = process.call_args.kwargs["env"]
+        self.assertEqual(argv, ["/usr/bin/gamemoderun", "/usr/games/example"])
+        self.assertEqual(env["MANGOHUD"], "1")
+        self.assertEqual(env["MANGOHUD_DLSYM"], "1")
+
+    def test_launcher_is_not_wrapped_as_a_game_process(self):
+        item = {"id": "steam", "is_native_game": False, "is_game": True, "argv": ["/usr/bin/steam"]}
+        with mock.patch("smarttv.shutil.which", side_effect=AssertionError("should not probe overlays")), \\
+             mock.patch("smarttv.subprocess.Popen") as process:
+            self.assertTrue(smarttv.launch_app([item], "steam"))
+        self.assertEqual(process.call_args.args[0], ["/usr/bin/steam"])
+
     def test_discovery_deduplicates_canonical_ids(self):
         with tempfile.TemporaryDirectory() as d:
             home = Path(d)
@@ -110,6 +170,26 @@ class HttpTests(unittest.TestCase):
         status, _, body = self.get("/api/open?id=steam", {"Origin": "https://attacker.invalid"})
         self.assertEqual(status, 403)
         self.assertIn(b"same-origin", body)
+
+    def test_app_catalogue_exposes_game_flag(self):
+        self.server.apps = [{"id": "native", "title": "Example Game", "icon": "", "color": "#000",
+                             "is_game": True, "argv": ["/usr/bin/true"]}]
+        status, _, body = self.get("/api/apps")
+        self.assertEqual(status, 200)
+        self.assertTrue(json.loads(body.decode("utf-8"))["apps"][0]["is_game"])
+
+    def test_gaming_api_updates_valid_preferences(self):
+        with mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": self.temp.name}):
+            status, _, body = self.get("/api/gaming?key=gamemode&enabled=0")
+            self.assertEqual(status, 200)
+            result = json.loads(body.decode("utf-8"))
+            self.assertFalse(result["gamemode"])
+            self.assertTrue((Path(self.temp.name) / "smart-tv/gaming.json").is_file())
+
+    def test_gaming_api_rejects_unknown_settings(self):
+        status, _, body = self.get("/api/gaming?key=unknown&enabled=1")
+        self.assertEqual(status, 400)
+        self.assertFalse(json.loads(body.decode("utf-8"))["ok"])
 
     def test_app_catalogue_api_returns_json(self):
         status, headers, body = self.get("/api/apps")
