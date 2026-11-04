@@ -15,14 +15,8 @@ case "$provider" in
     url="https://cloud.boosteroid.com/"
     profile="boosteroid"
     ;;
-  moonlight)
-    exec moonlight "$@"
-    ;;
-  steamlink)
-    exec steamlink "$@"
-    ;;
   *)
-    echo "Uso: smart-tv-cloud-game {xbox|geforcenow|boosteroid|moonlight|steamlink}" >&2
+    echo "Uso: smart-tv-cloud-game {xbox|geforcenow|boosteroid}" >&2
     exit 2
     ;;
 esac
