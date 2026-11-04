@@ -1,0 +1,9 @@
+# Smart TV OS — apps Flatpak adicionais para Modo Console
+com.heroicgameslauncher.hgl
+com.usebottles.bottles
+net.davidotek.pupgui2
+org.libretro.RetroArch
+org.DolphinEmu.dolphin-emu
+org.ppsspp.PPSSPP
+net.pcsx2.PCSX2
+net.rpcs3.RPCS3
