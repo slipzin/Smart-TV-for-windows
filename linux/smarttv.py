@@ -123,8 +123,10 @@ def steam_games(home):
 
 
 def gaming_config_path(home=None):
-    home=home or Path.home()
-    base=Path(os.environ.get("XDG_CONFIG_HOME",str(home/".config")))
+    if home is None:
+        base=Path(os.environ.get("XDG_CONFIG_HOME",str(Path.home()/".config")))
+    else:
+        base=Path(home)/".config"
     return base/"smart-tv"/"gaming.json"
 
 
