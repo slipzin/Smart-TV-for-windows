@@ -174,7 +174,8 @@ class HttpTests(unittest.TestCase):
     def test_app_catalogue_exposes_game_flag(self):
         self.server.apps = [{"id": "native", "title": "Example Game", "icon": "", "color": "#000",
                              "is_game": True, "argv": ["/usr/bin/true"]}]
-        status, _, body = self.get("/api/apps")
+        with mock.patch("smarttv.discover_apps", return_value=self.server.apps):
+            status, _, body = self.get("/api/apps")
         self.assertEqual(status, 200)
         self.assertTrue(json.loads(body.decode("utf-8"))["apps"][0]["is_game"])
 
