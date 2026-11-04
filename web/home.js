@@ -289,6 +289,7 @@
   }
 
   var apps = [], shelf = [], others = [], inputs = [];
+  var appsViewItems = [], appsViewGames = false;
 
   /** shelf_apps in config.properties: the shelf in that order, by id or name (part of it). */
   var WANTED = (CONFIG.shelfApps || []).map(function (s) { return s.toLowerCase(); });
@@ -351,7 +352,7 @@
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.DRAWER && st.drawer === i);
     list = document.querySelectorAll('#apps .cell');
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.APPS && st.grid === i);
-    var rows = Math.max(1, Math.ceil(others.length / 5)), r = Math.floor(st.grid / 5), first = Math.max(0, Math.min(rows - 3, r - 1));
+    var rows = Math.max(1, Math.ceil(appsViewItems.length / 5)), r = Math.floor(st.grid / 5), first = Math.max(0, Math.min(rows - 3, r - 1));
     $('apps').lastChild.style.webkitTransform = $('apps').lastChild.style.transform = 'translateY(' + (-first * 239) + 'px)';
     focusRows($('settings'), st.row, st.zone === Z.SETTINGS);
     focusRows($('shelfedit'), st.edit, st.zone === Z.EDIT);
@@ -711,23 +712,30 @@
 
   // MARK: - All Apps
 
-  function renderApps() {
+  function renderApps(gamesOnly) {
     var sheet = $('apps');
-    sheet.firstChild.textContent = tr('All Apps');
+    appsViewGames = !!gamesOnly;
+    appsViewItems = appsViewGames ? apps.filter(function (app) { return !!app.is_game; }) : others.slice();
+    sheet.firstChild.textContent = tr(appsViewGames ? 'Games' : 'All Apps');
     var grid = sheet.lastChild;
     grid.innerHTML = '';
-    for (var i = 0; i < others.length; i++) {
+    var empty = sheet.querySelector('.empty');
+    if (empty) sheet.removeChild(empty);
+    if (appsViewGames && !appsViewItems.length) {
+      empty = el('div', 'empty', sheet, tr('No games or game launchers were found. Install them from Discover or the gaming installer.'));
+    }
+    for (var i = 0; i < appsViewItems.length; i++) {
       var r = Math.floor(i / 5), c = i % 5, cell = el('div', 'cell', grid);
       cell.style.left = (130 + c * 340) + 'px';
       cell.style.top = (196 + r * 239) + 'px';
-      face(others[i], el('div', 'face', cell), wordFit(others[i].title, 300, 34));
-      el('div', 'label', cell, others[i].title);
+      face(appsViewItems[i], el('div', 'face', cell), wordFit(appsViewItems[i].title, 300, 34));
+      el('div', 'label', cell, appsViewItems[i].title);
       hover(cell, Z.APPS, i);
     }
   }
 
-  function openApps() {
-    renderApps();
+  function openApps(gamesOnly) {
+    renderApps(!!gamesOnly);
     st.zone = Z.APPS;
     st.grid = 0;
     setClass($('apps'), 'open', true);
@@ -752,8 +760,9 @@
 
   // MARK: - Home Settings
 
-  /** The desktop's own rows: background and appearance, automatic startup, and leaving TV mode. */
+  /** The desktop's own rows: background and appearance, gaming performance, and startup. */
   var autostartOn = null;
+  var gamingPrefs = {gamemode: true, mangohud: false, available: {gamemode: false, mangohud: false}};
   function pcRows() {
     if (TV.name !== 'pc') return [];
     var list = Wall.choices(), k = Wall.key(), mine = k === 'mine';
@@ -783,6 +792,10 @@
         if (autostartOn === null) return;
         TV.autostart(!autostartOn, function (on) { if (on !== null) autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
       }});
+    rows.push({label: tr('GameMode'), toggle: gamingPrefs.gamemode, dim: !gamingPrefs.available.gamemode,
+      step: function () { if (gamingPrefs.available.gamemode) TV.gaming('gamemode', !gamingPrefs.gamemode, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+    rows.push({label: tr('MangoHud overlay'), toggle: gamingPrefs.mangohud, dim: !gamingPrefs.available.mangohud,
+      step: function () { if (gamingPrefs.available.mangohud) TV.gaming('mangohud', !gamingPrefs.mangohud, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
     rows.push({label: tr('Leave TV mode'), value: '›', step: function (d) { if (d >= 0) TV.quit(); }});
     return rows;
   }
@@ -884,7 +897,10 @@
   function openSettings() {
     st.zone = Z.SETTINGS;
     st.row = 0;
-    if (TV.name === 'pc') TV.autostart(null, function (on) { autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
+    if (TV.name === 'pc') {
+      TV.autostart(null, function (on) { autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
+      TV.gaming(null, null, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); });
+    }
     renderSettings();
     setClass($('settings'), 'open', true);
     updateFocus();
@@ -1328,7 +1344,7 @@
     switch (st.zone) {
       case Z.TOP:
         if (st.top < 3) return;
-        if (st.top === 3 && TV.name === 'pc') launcher('steam', tr('Games'))();
+        if (st.top === 3 && TV.name === 'pc') openApps(true);
         else if (st.top === 3) { var live = liveTV(); if (live) launcher(live.id, tr('Live TV'))(); }
         else if (st.top === 4) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
         else openSettings();
@@ -1344,7 +1360,7 @@
         if (drawerItems[st.drawer]) drawerItems[st.drawer].run();
         return;
       case Z.APPS:
-        if (others[st.grid]) launcher(others[st.grid].id, others[st.grid].title)();
+        if (appsViewItems[st.grid]) launcher(appsViewItems[st.grid].id, appsViewItems[st.grid].title)();
         return;
       case Z.SETTINGS:
         if (rowsNow[st.row]) { rowsNow[st.row].step(1); if (st.zone === Z.SETTINGS) renderSettings(); }
@@ -1411,7 +1427,7 @@
         break;
       case Z.APPS:
         var g = st.grid + dx + dy * 5;
-        if (g >= 0 && g < others.length && (dx === 0 || Math.floor(g / 5) === Math.floor(st.grid / 5))) st.grid = g;
+        if (g >= 0 && g < appsViewItems.length && (dx === 0 || Math.floor(g / 5) === Math.floor(st.grid / 5))) st.grid = g;
         break;
       case Z.SETTINGS:
         if (dy) st.row = Math.max(0, Math.min(rowsNow.length - 1, st.row + dy));
