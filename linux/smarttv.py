@@ -251,6 +251,7 @@ class Handler(BaseHTTPRequestHandler):
         if fetch_site and fetch_site not in ("same-origin","none"): self.js({"error":"same-origin requests only"},403); return
         u=urllib.parse.urlsplit(self.path); path=urllib.parse.unquote(u.path); q=urllib.parse.parse_qs(u.query,keep_blank_values=True)
         if path=="/api/apps":
+            self.server.apps=discover_apps()
             self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game")} for a in self.server.apps]})
         elif path=="/api/gaming":
             key=q.get("key",[""])[0]; raw=q.get("enabled",[""])[0]
