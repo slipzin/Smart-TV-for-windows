@@ -134,11 +134,12 @@ jobs:
             exit 1
           fi
 
+          TARGET_SHA=$(git rev-parse HEAD)
           gh release create "$RELEASE_TAG" \
             "${ARCHIVE_ASSETS[@]}" \
             out/SmartTV-OS-live-trixie-amd64.7z.sha256 \
             out/SmartTV-OS-live-trixie-amd64.iso.sha256 \
-            --target "$GITHUB_SHA" \
+            --target "$TARGET_SHA" \
             --prerelease \
             --title "Smart TV OS $RELEASE_TAG" \
             --notes-file linux/RELEASE-NOTES.md
