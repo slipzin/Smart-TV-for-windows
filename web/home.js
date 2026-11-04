@@ -289,6 +289,8 @@
   }
 
   var apps = [], shelf = [], others = [], inputs = [];
+  var appsViewItems = [], appsViewMode = 'all';
+  var experienceProfile = 'tv';
 
   /** shelf_apps in config.properties: the shelf in that order, by id or name (part of it). */
   var WANTED = (CONFIG.shelfApps || []).map(function (s) { return s.toLowerCase(); });
@@ -351,7 +353,7 @@
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.DRAWER && st.drawer === i);
     list = document.querySelectorAll('#apps .cell');
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.APPS && st.grid === i);
-    var rows = Math.max(1, Math.ceil(others.length / 5)), r = Math.floor(st.grid / 5), first = Math.max(0, Math.min(rows - 3, r - 1));
+    var rows = Math.max(1, Math.ceil(appsViewItems.length / 5)), r = Math.floor(st.grid / 5), first = Math.max(0, Math.min(rows - 3, r - 1));
     $('apps').lastChild.style.webkitTransform = $('apps').lastChild.style.transform = 'translateY(' + (-first * 239) + 'px)';
     focusRows($('settings'), st.row, st.zone === Z.SETTINGS);
     focusRows($('shelfedit'), st.edit, st.zone === Z.EDIT);
@@ -402,8 +404,9 @@
     }
     var buttons = $('buttons');
     buttons.innerHTML = '';
-    // A PC has no antenna or HDMI inputs: there the first two are Games (Steam's Big Picture) and All Apps.
-    var defs = TV.name === 'pc' ? [['gamepad', tr('Games')], ['apps', tr('All Apps')], ['settings', tr('light|Settings')]]
+    // Linux separates a light TV/streaming profile from local console gaming.
+    var gameAction = TV.platform === 'linux' && experienceProfile === 'tv' ? 'Cloud gaming' : 'Games';
+    var defs = TV.name === 'pc' ? [['gamepad', tr(gameAction)], ['apps', tr('All Apps')], ['settings', tr('light|Settings')]]
         : [['live_tv', tr('light|Live TV')], ['hdmi', tr('HDMI Inputs')], ['settings', tr('light|Settings')]];
     for (var b = 0; b < 3; b++) {
       var r = el('button', 'round' + (b === 2 ? ' last' : ''), buttons);
@@ -711,28 +714,48 @@
 
   // MARK: - All Apps
 
-  function renderApps() {
+  function renderApps(viewMode) {
     var sheet = $('apps');
-    sheet.firstChild.textContent = tr('All Apps');
+    appsViewMode = viewMode || 'all';
+    if (appsViewMode === 'local') appsViewItems = apps.filter(function (app) { return !!app.is_game && !app.is_cloud_game && !app.is_streaming_client; });
+    else if (appsViewMode === 'cloud') appsViewItems = apps.filter(function (app) { return !!app.is_cloud_game; });
+    else if (appsViewMode === 'streaming') appsViewItems = apps.filter(function (app) { return !!app.is_streaming_client; });
+    else appsViewItems = others.slice();
+    sheet.firstChild.textContent = tr(appsViewMode === 'local' ? 'Games' : appsViewMode === 'cloud' ? 'Cloud gaming' : appsViewMode === 'streaming' ? 'Other PC on network' : 'All Apps');
     var grid = sheet.lastChild;
     grid.innerHTML = '';
-    for (var i = 0; i < others.length; i++) {
+    var empty = sheet.querySelector('.empty');
+    if (empty) sheet.removeChild(empty);
+    if (appsViewMode !== 'all' && !appsViewItems.length) {
+      var message = appsViewMode === 'cloud' ? 'Cloud gaming shortcuts are not installed. Check the TV profile installation.' : appsViewMode === 'streaming' ? 'Install Moonlight or Steam Link from Discover only if another PC is available on your network.' : 'No local games found. Open Install gaming extras in All Apps, then install games in Steam or another launcher.';
+      empty = el('div', 'empty', sheet, tr(message));
+    }
+    for (var i = 0; i < appsViewItems.length; i++) {
       var r = Math.floor(i / 5), c = i % 5, cell = el('div', 'cell', grid);
       cell.style.left = (130 + c * 340) + 'px';
       cell.style.top = (196 + r * 239) + 'px';
-      face(others[i], el('div', 'face', cell), wordFit(others[i].title, 300, 34));
-      el('div', 'label', cell, others[i].title);
+      face(appsViewItems[i], el('div', 'face', cell), wordFit(appsViewItems[i].title, 300, 34));
+      el('div', 'label', cell, appsViewItems[i].title);
       hover(cell, Z.APPS, i);
     }
   }
 
-  function openApps() {
-    renderApps();
-    st.zone = Z.APPS;
-    st.grid = 0;
-    setClass($('apps'), 'open', true);
-    fitLogos($('apps'));
-    updateFocus();
+  function openApps(viewMode) {
+    // Re-scan desktop/Flatpak launchers and Steam library manifests whenever
+    // the user opens the app grid, so newly installed games appear without rebooting.
+    TV.apps(function (list) {
+      if (list) {
+        apps = list.filter(function (a) { return !hidden(a); });
+        Data.setApps(apps);
+        pickShelf();
+      }
+      renderApps(viewMode || 'all');
+      st.zone = Z.APPS;
+      st.grid = 0;
+      setClass($('apps'), 'open', true);
+      fitLogos($('apps'));
+      updateFocus();
+    });
   }
 
   function closeSheets() {
@@ -752,8 +775,9 @@
 
   // MARK: - Home Settings
 
-  /** The PC's own rows, first in Home Settings: the background and how it looks, opening with Windows, leaving. */
+  /** The desktop's own rows: background and appearance, gaming performance, and startup. */
   var autostartOn = null;
+  var gamingPrefs = {profile: 'tv', gamemode: true, mangohud: false, available: {gamemode: false, mangohud: false}};
   function pcRows() {
     if (TV.name !== 'pc') return [];
     var list = Wall.choices(), k = Wall.key(), mine = k === 'mine';
@@ -772,17 +796,34 @@
         value: blur === 'soft' ? tr('blur|Soft') : blur === 'strong' ? tr('blur|Strong') : tr('Off'),
         step: function (d) { if (Wall.active()) { cycle('wallBlur', ['off', 'soft', 'strong'], blur, d); Wall.apply(); } }}
     ];
+    if (TV.platform === 'linux') {
+      rows.unshift({label: tr('Experience mode'),
+        value: experienceProfile === 'console' ? tr('Console mode (local games)') : tr('TV mode (game streaming)'),
+        step: function (d) {
+          var next = experienceProfile === 'tv' ? 'console' : 'tv';
+          TV.profile(next, function (cfg) {
+            if (cfg) { experienceProfile = cfg.profile; gamingPrefs = cfg; renderTop(); }
+            if (st.zone === Z.SETTINGS) renderSettings();
+          });
+        }});
+    }
     if (mine && Wall.pictures() > 1) {
       rows.push({label: tr('Change picture every'), value: trf('{n} min', {n: every}),
         step: function (d) { cycle('wallEvery', [1, 5, 15, 30], every, d); Wall.apply(); }});
     }
     rows.push({label: tr('Look for new pictures'), value: '›',
       step: function (d) { if (d >= 0) Wall.reload(function () { toast(trf('{n} pictures and videos in the Fundos folder', {n: Wall.media()})); renderSettings(); }); }});
-    rows.push({label: tr('Open with Windows'), toggle: autostartOn === true, dim: autostartOn === null,
+    rows.push({label: TV.platform === 'linux' ? tr('Start automatically') : tr('Open with Windows'), toggle: autostartOn === true, dim: autostartOn === null,
       step: function () {
         if (autostartOn === null) return;
         TV.autostart(!autostartOn, function (on) { if (on !== null) autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
       }});
+    if (TV.platform === 'linux' && experienceProfile === 'console') {
+      rows.push({label: tr('GameMode'), toggle: gamingPrefs.gamemode, dim: !gamingPrefs.available.gamemode,
+        step: function () { if (gamingPrefs.available.gamemode) TV.gaming('gamemode', !gamingPrefs.gamemode, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+      rows.push({label: tr('MangoHud overlay'), toggle: gamingPrefs.mangohud, dim: !gamingPrefs.available.mangohud,
+        step: function () { if (gamingPrefs.available.mangohud) TV.gaming('mangohud', !gamingPrefs.mangohud, function (cfg) { if (cfg) gamingPrefs = cfg; if (st.zone === Z.SETTINGS) renderSettings(); }); }});
+    }
     rows.push({label: tr('Leave TV mode'), value: '›', step: function (d) { if (d >= 0) TV.quit(); }});
     return rows;
   }
@@ -884,7 +925,14 @@
   function openSettings() {
     st.zone = Z.SETTINGS;
     st.row = 0;
-    if (TV.name === 'pc') TV.autostart(null, function (on) { autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
+    if (TV.name === 'pc') {
+      TV.autostart(null, function (on) { autostartOn = on; if (st.zone === Z.SETTINGS) renderSettings(); });
+      if (TV.platform === 'linux') TV.profile(null, function (cfg) {
+        if (cfg) { experienceProfile = cfg.profile; gamingPrefs = cfg; }
+        if (st.zone === Z.SETTINGS) renderSettings();
+        renderTop();
+      });
+    }
     renderSettings();
     setClass($('settings'), 'open', true);
     updateFocus();
@@ -1328,7 +1376,8 @@
     switch (st.zone) {
       case Z.TOP:
         if (st.top < 3) return;
-        if (st.top === 3 && TV.name === 'pc') launcher('steam', tr('Games'))();
+        if (st.top === 3 && TV.name === 'pc' && TV.platform === 'linux') openApps(experienceProfile === 'console' ? 'local' : 'cloud');
+        else if (st.top === 3 && TV.name === 'pc') launcher('steam', tr('Games'))();
         else if (st.top === 3) { var live = liveTV(); if (live) launcher(live.id, tr('Live TV'))(); }
         else if (st.top === 4) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
         else openSettings();
@@ -1344,7 +1393,7 @@
         if (drawerItems[st.drawer]) drawerItems[st.drawer].run();
         return;
       case Z.APPS:
-        if (others[st.grid]) launcher(others[st.grid].id, others[st.grid].title)();
+        if (appsViewItems[st.grid]) launcher(appsViewItems[st.grid].id, appsViewItems[st.grid].title)();
         return;
       case Z.SETTINGS:
         if (rowsNow[st.row]) { rowsNow[st.row].step(1); if (st.zone === Z.SETTINGS) renderSettings(); }
@@ -1411,7 +1460,7 @@
         break;
       case Z.APPS:
         var g = st.grid + dx + dy * 5;
-        if (g >= 0 && g < others.length && (dx === 0 || Math.floor(g / 5) === Math.floor(st.grid / 5))) st.grid = g;
+        if (g >= 0 && g < appsViewItems.length && (dx === 0 || Math.floor(g / 5) === Math.floor(st.grid / 5))) st.grid = g;
         break;
       case Z.SETTINGS:
         if (dy) st.row = Math.max(0, Math.min(rowsNow.length - 1, st.row + dy));
@@ -1695,7 +1744,12 @@
       pickShelf();
       TV.inputs(function (list2) {
         inputs = list2;
-        if (done) done();
+        if (TV.platform === 'linux') {
+          TV.profile(null, function (cfg) {
+            if (cfg) { experienceProfile = cfg.profile; gamingPrefs = cfg; renderTop(); }
+            if (done) done();
+          });
+        } else if (done) done();
       });
     });
   }

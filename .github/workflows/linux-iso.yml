@@ -1,0 +1,111 @@
+name: Build Smart TV OS Live ISO
+
+on:
+  push:
+    branches:
+      - feature/linux-dual-boot-foundation
+    paths:
+      - "linux/**"
+      - "pc/build.py"
+      - "web/**"
+      - "assets/**"
+      - ".github/workflows/linux-iso.yml"
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Criar uma GitHub Release prerelease e anexar a ISO após o build'
+        required: true
+        type: boolean
+        default: false
+      release_tag:
+        description: 'Tag da versão (ex.: v0.1.0-alpha.1)'
+        required: true
+        type: string
+        default: 'v0.1.0-alpha.1'
+
+concurrency:
+  group: smarttv-linux-iso-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-iso:
+    name: Build Debian Live ISO (amd64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/linux-dual-boot-foundation
+
+      - name: Build in Debian 13 container
+        run: |
+          docker run --privileged --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            debian:trixie \
+            bash -euxo pipefail -c '
+              apt-get update
+              DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                ca-certificates \
+                build-essential \
+                cmake \
+                curl \
+                git \
+                perl \
+                pkg-config \
+                cpio \
+                debootstrap \
+                dosfstools \
+                grub-efi-amd64-bin \
+                grub-pc-bin \
+                isolinux \
+                live-build \
+                flatpak \
+                mtools \
+                rsync \
+                squashfs-tools \
+                syslinux-common \
+                syslinux-utils \
+                xorriso \
+                python3
+              linux/test.sh
+              bash linux/validate-profile-packages.sh
+              linux/build-iso.sh
+              cd out
+              sha256sum SmartTV-OS-live-trixie-amd64.iso > SmartTV-OS-live-trixie-amd64.iso.sha256
+              ls -lh SmartTV-OS-live-trixie-amd64.iso*
+            '
+
+      - name: Upload bootable ISO and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-Live-Debian13-amd64
+          path: |
+            out/SmartTV-OS-live-trixie-amd64.iso
+            out/SmartTV-OS-live-trixie-amd64.iso.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Publish prerelease with ISO assets
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo "Invalid release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" \
+            out/SmartTV-OS-live-trixie-amd64.iso \
+            out/SmartTV-OS-live-trixie-amd64.iso.sha256 \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Smart TV OS $RELEASE_TAG" \
+            --notes-file linux/RELEASE-NOTES.md

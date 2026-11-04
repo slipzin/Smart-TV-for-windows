@@ -10,8 +10,9 @@ var TV = (function () {
 
   var webos = typeof window.PalmServiceBridge !== 'undefined';
   var samsung = !webos && typeof window.tizen !== 'undefined' && !!window.tizen.application;
-  // Windows (pc/tv.ps1): the page comes from the PC's own little server, which lists and opens the PC's apps.
+  // Desktop backend on loopback: PowerShell on Windows or smarttv.py on Linux.
   var pc = !webos && !samsung && /^http:\/\/(127\.0\.0\.1|localhost):48765\//.test(window.location.href);
+  var linux = pc && /(?:\?|&)platform=linux(?:&|$)/.test(window.location.search);
   var calls = [];   // a bridge is collected if nothing holds it before its reply arrives
   var tizen2 = samsung && /Tizen 2\./.test(navigator.userAgent);
   // 2017 and 2018 Samsungs (Tizen 3 and 4) freeze opening their settings from an app (MU6100, MU6122, NU7400, #257).
@@ -425,7 +426,7 @@ var TV = (function () {
   // MARK: - About this TV
 
   /** done({model, firmware, system, version, ip}), with '' for what the TV doesn't tell. */
-  // MARK: - Windows (pc/tv.ps1)
+  // MARK: - Desktop runtime (PowerShell on Windows, smarttv.py on Linux)
 
   /** One call to the PC's server; done(result) with null on failure. */
   function pcApi(path, done) {
@@ -566,6 +567,7 @@ var TV = (function () {
 
   return {
     name: webos ? 'webos' : samsung ? 'tizen' : pc ? 'pc' : 'browser',
+    platform: linux ? 'linux' : pc ? 'windows' : 'browser',
 
     /**
      * Whether an app can open the TV's settings. Not on Tizen 2 (a 2016 KU6300): the "settings" request and
@@ -627,6 +629,22 @@ var TV = (function () {
     autostart: function (on, done) {
       if (!pc) { if (done) done(null); return; }
       pcApi('/api/autostart' + (on === null ? '' : '?on=' + (on ? '1' : '0')), function (res) { if (done) done(res ? !!res.on : null); });
+    },
+
+    /** Linux profile: TV streaming or local console gaming. */
+    profile: function (mode, done) {
+      if (!linux) { if (done) done(null); return; }
+      var path = '/api/profile';
+      if (mode) path += '?mode=' + encodeURIComponent(mode);
+      pcApi(path, function (res) { if (done) done(res && res.profile ? res : null); });
+    },
+
+    /** PC gaming options: read the state or update one option and return capabilities. */
+    gaming: function (key, enabled, done) {
+      if (!linux) { if (done) done(null); return; }
+      var path = '/api/gaming';
+      if (key) path += '?key=' + encodeURIComponent(key) + '&enabled=' + (enabled ? '1' : '0');
+      pcApi(path, function (res) { if (done) done(res && res.available ? res : null); });
     },
 
     /** PC: leaves TV mode (the home screen closes, the computer's desktop is back). */

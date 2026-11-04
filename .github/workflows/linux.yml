@@ -1,0 +1,19 @@
+name: Linux runtime checks
+on:
+  push:
+    branches:
+      - main
+      - feature/linux-dual-boot-foundation
+  pull_request:
+    branches:
+      - main
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test Linux backend
+        run: linux/test.sh

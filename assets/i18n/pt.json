@@ -39,6 +39,19 @@
  "Free, and it takes two minutes:": "É grátis e leva dois minutos:",
  "From the picks": "Das capas (padrão)",
  "Games": "Jogos",
+ "Cloud gaming": "Jogos na nuvem",
+ "Other PC on network": "Outro PC na rede",
+ "Cloud gaming shortcuts are not installed. Check the TV profile installation.": "Os atalhos de jogos na nuvem não estão instalados. Verifique a instalação do perfil TV.",
+ "Install Moonlight or Steam Link from Discover only if another PC is available on your network.": "Instale Moonlight ou Steam Link pelo Discover somente se houver outro PC disponível na rede.",
+ "Experience mode": "Modo de experiência",
+ "TV mode (game streaming)": "Modo TV (jogos via streaming)",
+ "Console mode (local games)": "Modo Console (jogos locais)",
+ "Play from PC": "Jogar via PC",
+ "Install Moonlight or Steam Link from Discover to play games from another PC.": "Instale Moonlight ou Steam Link pela loja Discover para jogar usando outro computador.",
+ "No local games found. Open Install gaming extras in All Apps, then install games in Steam or another launcher.": "Nenhum jogo local foi encontrado. Abra Instalar extras de jogos em Todos os Apps e depois instale jogos na Steam ou em outro launcher.",
+ "GameMode": "Modo de desempenho GameMode",
+ "MangoHud overlay": "Sobreposição MangoHud",
+ "No games or game launchers were found. Install them from Discover or the gaming installer.": "Nenhum jogo ou launcher foi encontrado. Instale pela loja Discover ou pelo instalador gamer.",
  "Graphite": "Grafite",
  "H:{max}": "Máx. {max}",
  "HDMI Inputs": "Entradas HDMI",
@@ -188,5 +201,6 @@
  "{n} h ago": "há {n} h",
  "{n} min": "{n} min",
  "{n} min ago": "há {n} min",
- "{n} pictures and videos in the Fundos folder": "{n} imagens e vídeos na pasta Fundos"
+ "{n} pictures and videos in the Fundos folder": "{n} imagens e vídeos na pasta Fundos",
+ "Start automatically": "Iniciar automaticamente"
 }
