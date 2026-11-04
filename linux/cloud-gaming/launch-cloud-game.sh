@@ -39,4 +39,5 @@ exec chromium \
   --no-first-run \
   --no-default-browser-check \
   --disable-session-crashed-bubble \
+  --enable-features=VaapiVideoDecodeLinuxGL \
   --user-data-dir="$profile_dir"
