@@ -20,7 +20,7 @@ mkdir -p "$WORK/config/package-lists" \
   "$WORK/config/includes.chroot/usr/local/bin" \
   "$WORK/config/includes.chroot/etc/xdg/autostart" \
   "$WORK/config/includes.chroot/etc/skel/.config/autostart" \
-  "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d"
+  "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d" "$WORK/config/hooks/live"
 cd "$WORK"
 
 python3 "$ROOT/pc/build.py" --out "$WORK/windows-build"
@@ -59,6 +59,27 @@ Terminal=false
 Categories=System;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar Smart TV OS.desktop"
+
+cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Receber AirPlay
+Comment=Receba espelhamento AirPlay compatível com PIN de segurança
+Exec=konsole -e uxplay -n Smart-TV-OS -pin
+Icon=network-wireless
+Terminal=false
+Categories=Network;AudioVideo;
+EOF
+chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop"
+
+cat > "$WORK/config/hooks/live/0500-flathub.hook.chroot" <<'EOF'
+#!/bin/sh
+set -eu
+if command -v flatpak >/dev/null 2>&1; then
+  flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+fi
+EOF
+chmod 0755 "$WORK/config/hooks/live/0500-flathub.hook.chroot"
 echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/grub.d/50-smarttv-os-prober.cfg"
 
 cat > "$WORK/config/package-lists/smarttv.list.chroot" <<'EOF'
@@ -76,6 +97,7 @@ xwayland
 konsole
 dolphin
 network-manager
+avahi-daemon
 sudo
 python3
 chromium
@@ -90,6 +112,9 @@ mangohud
 lutris
 vlc
 kodi
+uxplay
+gstreamer1.0-libav
+gstreamer1.0-plugins-good
 plasma-discover
 plasma-discover-backend-flatpak
 calamares
