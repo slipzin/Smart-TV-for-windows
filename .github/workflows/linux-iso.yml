@@ -82,14 +82,22 @@ jobs:
               ARCHIVE="SmartTV-OS-live-trixie-amd64.7z"
               sha256sum "$ISO" > "$ISO.sha256"
 
+              # Debian 13 package "7zip" exposes the CLI as 7z; accept 7zz too.
+              SEVENZIP="$(command -v 7zz || command -v 7z || true)"
+              if [[ -z "$SEVENZIP" ]]; then
+                echo "7-Zip CLI was not found after installing Debian package 7zip" >&2
+                dpkg -L 7zip >&2 || true
+                exit 1
+              fi
+
               # Create a solid LZMA2 archive. If it approaches GitHub
               # per-asset 2 GiB limit, recreate it as 1800 MiB volumes.
-              7zz a -t7z -mx=9 -m0=lzma2 -ms=on "$ARCHIVE" "$ISO"
+              "$SEVENZIP" a -t7z -mx=9 -m0=lzma2 -ms=on "$ARCHIVE" "$ISO"
               ARCHIVE_SIZE=$(stat -c%s "$ARCHIVE")
               SINGLE_FILE_LIMIT=$((1900 * 1024 * 1024))
               if (( ARCHIVE_SIZE >= SINGLE_FILE_LIMIT )); then
                 rm -f "$ARCHIVE"
-                7zz a -t7z -mx=9 -m0=lzma2 -ms=on -v1800m "$ARCHIVE" "$ISO"
+                "$SEVENZIP" a -t7z -mx=9 -m0=lzma2 -ms=on -v1800m "$ARCHIVE" "$ISO"
               fi
 
               mapfile -t ARCHIVE_FILES < <(find . -maxdepth 1 -type f \
