@@ -48,11 +48,11 @@ class DesktopTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             native = self.write(root, "native.desktop",
-                "[Desktop Entry]\\nType=Application\\nName=SuperTuxKart\\n"
-                "Exec=/usr/bin/true\\nCategories=Game;ArcadeGame;\\n")
+                "[Desktop Entry]\nType=Application\nName=SuperTuxKart\n"
+                "Exec=/usr/bin/true\nCategories=Game;ArcadeGame;\n")
             heroic = self.write(root, "heroic.desktop",
-                "[Desktop Entry]\\nType=Application\\nName=Heroic Games Launcher\\n"
-                "Exec=/usr/bin/true\\nCategories=Utility;\\n")
+                "[Desktop Entry]\nType=Application\nName=Heroic Games Launcher\n"
+                "Exec=/usr/bin/true\nCategories=Utility;\n")
             with mock.patch("smarttv.shutil.which", return_value="/usr/bin/true"):
                 native_app = smarttv.parse_desktop_file(native)
                 heroic_app = smarttv.parse_desktop_file(heroic)
@@ -67,7 +67,7 @@ class DesktopTests(unittest.TestCase):
             steamapps = home / ".steam/steam/steamapps"
             steamapps.mkdir(parents=True)
             (steamapps / "appmanifest_1234.acf").write_text(
-                '"AppState"\\n{\\n  "appid" "1234"\\n  "name" "Example Game"\\n}\\n',
+                '"AppState"\n{\n  "appid" "1234"\n  "name" "Example Game"\n}\n',
                 encoding="utf-8")
             games = smarttv.steam_games(home)
             self.assertEqual(len(games), 1)
@@ -87,8 +87,8 @@ class DesktopTests(unittest.TestCase):
     def test_native_games_get_optional_performance_wrappers(self):
         item = {"id": "native", "is_native_game": True, "argv": ["/usr/games/example"]}
         which = { "gamemoderun": "/usr/bin/gamemoderun", "mangohud": "/usr/bin/mangohud" }
-        with mock.patch("smarttv.gaming_settings", return_value={"gamemode": True, "mangohud": True}), \\
-             mock.patch("smarttv.shutil.which", side_effect=lambda name: which.get(name)), \\
+        with mock.patch("smarttv.gaming_settings", return_value={"gamemode": True, "mangohud": True}), \
+             mock.patch("smarttv.shutil.which", side_effect=lambda name: which.get(name)), \
              mock.patch("smarttv.subprocess.Popen") as process:
             self.assertTrue(smarttv.launch_app([item], "native"))
         argv = process.call_args.args[0]
@@ -99,7 +99,7 @@ class DesktopTests(unittest.TestCase):
 
     def test_launcher_is_not_wrapped_as_a_game_process(self):
         item = {"id": "steam", "is_native_game": False, "is_game": True, "argv": ["/usr/bin/steam"]}
-        with mock.patch("smarttv.shutil.which", side_effect=AssertionError("should not probe overlays")), \\
+        with mock.patch("smarttv.shutil.which", side_effect=AssertionError("should not probe overlays")), \
              mock.patch("smarttv.subprocess.Popen") as process:
             self.assertTrue(smarttv.launch_app([item], "steam"))
         self.assertEqual(process.call_args.args[0], ["/usr/bin/steam"])
