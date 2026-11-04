@@ -735,12 +735,21 @@
   }
 
   function openApps(gamesOnly) {
-    renderApps(!!gamesOnly);
-    st.zone = Z.APPS;
-    st.grid = 0;
-    setClass($('apps'), 'open', true);
-    fitLogos($('apps'));
-    updateFocus();
+    // Re-scan desktop/Flatpak launchers and Steam library manifests whenever
+    // the user opens the app grid, so newly installed games appear without rebooting.
+    TV.apps(function (list) {
+      if (list) {
+        apps = list.filter(function (a) { return !hidden(a); });
+        Data.setApps(apps);
+        pickShelf();
+      }
+      renderApps(!!gamesOnly);
+      st.zone = Z.APPS;
+      st.grid = 0;
+      setClass($('apps'), 'open', true);
+      fitLogos($('apps'));
+      updateFocus();
+    });
   }
 
   function closeSheets() {
