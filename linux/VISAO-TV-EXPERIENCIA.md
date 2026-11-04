@@ -43,10 +43,18 @@ O menu da TV deve reunir os recursos em uma seção única, por exemplo **Conect
 | Tecnologia | Papel no Smart TV OS | Estado e observações |
 |---|---|---|
 | AirPlay / AirPlay Mirror | Receber espelhamento de iPhone, iPad e Mac, com áudio quando suportado | Início possível com UxPlay do Debian. Não equivale a um receptor completo de Apple TV/AirPlay 2; testar modelos e versões iOS. Conteúdo protegido pode ser bloqueado. |
-| Google Cast / Chromecast | Receber mídia enviada por aplicativos Android/iOS compatíveis e devolver controles ao celular | Requer receiver compatível e validação com os aplicativos remetentes. Não presumir compatibilidade universal. Alguns receivers e apps usam IDs e integrações próprios. |
+| Google Cast / Chromecast | Permitir que o próprio app de streaming no celular descubra a TV, inicie a sessão e controle a reprodução sem espelhamento | Criar um receiver real e compatível. A descoberta na rede não garante que cada serviço aceite o receiver; compatibilidade por app é obrigatória. |
 | Miracast / Wi-Fi Display | Receber a tela inteira de celulares Android que ofereçam essa opção (por exemplo, Smart View em alguns aparelhos) | Pesquisa experimental. O suporte no Linux depende do adaptador Wi‑Fi, Wi‑Fi Direct/P2P, driver e gerenciamento de rede. Não habilitar como recurso estável sem testes. |
 | FCast | Receber streams, arquivos e mídia de aplicativos que implementem o protocolo aberto FCast | Caminho aberto complementar. Não é Google Cast nem garante espelhamento nativo de qualquer celular; confirmar cada aplicativo remetente. |
 | DLNA / UPnP | Descobrir e receber mídia local em aparelhos compatíveis | Alternativa para arquivos e players compatíveis; não substitui espelhamento de tela nem apps de streaming protegidos. |
+
+### Cast nativo dentro dos aplicativos — requisito "TV Sala"
+
+O comportamento desejado para os serviços é o Cast iniciado dentro do próprio aplicativo móvel, como em uma Smart TV: o usuário abre Netflix/Prime Video/Disney+/outro app, toca em Transmitir, seleciona **TV Sala**, e a reprodução acontece no receiver/app da TV. O celular permanece como controle da sessão. Não é espelhamento da tela.
+
+O documento [Cast nativo dos aplicativos — destino TV Sala](CAST-APPS-E-RECEPTORES.md) descreve o fluxo, a arquitetura e a matriz de validação por serviço.
+
+**Atenção especial à Netflix:** sua documentação atual restringe o Cast do app móvel a Chromecast de 3ª geração ou anterior sem controle remoto, Nest Hub e alguns modelos Vizio/Compal. Um PC Linux com receiver Cast genérico não está nessa lista. Portanto, não prometer que Netflix mostrará TV Sala até haver aceitação oficial e teste real. Para esse serviço, o plano alternativo é executar Netflix diretamente na TV e oferecer um controle companion próprio do Smart TV OS no celular. Isso não é o mesmo que selecionar a TV dentro do app Netflix.
 
 ### AirPlay: primeira integração
 
@@ -150,11 +158,14 @@ Todos os receptores devem ter estados claros: desligado, procurando, aguardando 
 
 **Aceite:** o telefone emparelha por código temporário, controla navegação/volume/reprodução autorizados e pode ser removido pela TV.
 
-### Fase C — Android screen casting e Google Cast
+### Fase C — Cast nativo dentro dos apps (TV Sala), Android e Google Cast
 
 - [ ] Avaliar e testar um receiver Miracast sink real em hardware suportado.
 - [ ] Validar compatibilidade Wi‑Fi Direct/P2P sem derrubar a conexão normal da TV.
 - [ ] Escolher uma implementação Google Cast receiver compatível e verificar requisitos de registro, receiver IDs e DRM.
+- [ ] Implementar nome amigável configurável, padrão TV Sala, e fluxo Sender → Receiver sem espelhamento.
+- [ ] Validar cada aplicativo móvel separadamente; não inferir suporte Netflix a partir de testes com outros apps.
+- [ ] Para serviços que não aceitam receiver genérico, abrir o cliente do serviço na TV e disponibilizar controle companion autorizado.
 - [ ] Testar os aplicativos Android mais importantes um por um.
 - [ ] Não chamar FCast ou DLNA de Google Cast.
 
@@ -187,7 +198,8 @@ No momento desta especificação, a edição Linux é experimental:
 - KDE Discover e suporte Flatpak na composição em construção.
 - Kodi, VLC, Lutris, GameMode e MangoHud na lista de pacotes da imagem.
 - UxPlay em integração inicial para AirPlay Mirror básico (não AirPlay 2 completo).
-- Google Cast receiver completo, Miracast sink integrado, controle remoto móvel próprio e experiência visual final ainda não concluídos.
+- Cast nativo dentro dos aplicativos (destino TV Sala), receiver Google Cast completo, Miracast sink integrado, controle remoto móvel próprio e experiência visual final ainda não concluídos.
+- A Netflix atualmente restringe o Cast móvel a uma lista limitada de dispositivos; um receiver Linux genérico não tem compatibilidade confirmada.
 - Steam não vem pré-instalada.
 - O Calamares usa configuração genérica; o fluxo de dual boot ainda não está validado em hardware real.
 
@@ -199,6 +211,7 @@ No momento desta especificação, a edição Linux é experimental:
 - [FCast — protocolo aberto](https://docs.fcast.org/)
 - [FCast — receiver](https://docs.fcast.org/receiver/)
 - [Google Cast — arquitetura sender/receiver](https://developers.google.com/cast/docs/overview)
+- [Documento do projeto: Cast nativo e TV Sala](CAST-APPS-E-RECEPTORES.md)
 - [Google Cast — registro de receiver](https://developers.google.com/cast/docs/registration)
 - [MiracleCast — implementação Miracast sink](https://github.com/albfan/miraclecast)
 - [Netflix — transmissão e espelhamento](https://help.netflix.com/pt/node/49)
