@@ -110,6 +110,9 @@ jobs:
               ls -lh "$ISO" "$ISO.sha256" "$ARCHIVE.sha256" "${ARCHIVE_FILES[@]}"
             '
 
+      - name: Make build outputs writable for artifact preparation
+        run: chmod -R a+rwX out
+
       - name: Split ISO into downloadable parts (400 MiB each)
         run: |
           set -euo pipefail
