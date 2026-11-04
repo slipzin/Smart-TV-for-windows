@@ -55,9 +55,8 @@ apt-get -s -t trixie-backports --no-install-recommends install "${BACKPORTS[@]}"
 
 apt-get install -y --no-install-recommends flatpak
 flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak remote-ls --app --columns=application flathub | sort -u > /tmp/smarttv-flathub-apps.txt
 for app in "${FLATPAKS[@]}"; do
-  if ! grep -Fxq "$app" /tmp/smarttv-flathub-apps.txt; then
+  if ! flatpak remote-info --system flathub "$app" >/dev/null; then
     echo "Aplicativo Flatpak não encontrado no Flathub: $app" >&2
     exit 1
   fi
