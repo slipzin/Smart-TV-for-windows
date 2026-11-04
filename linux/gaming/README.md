@@ -40,6 +40,7 @@ A instalação Flatpak precisa de Internet e baixa os runtimes e aplicativos. O 
 
 - Ter um launcher instalado não garante que todo jogo rode no Linux.
 - Jogos com anti-cheat, DRM, launchers proprietários ou dependências específicas podem não funcionar com Wine/Proton.
+- Para GPUs Intel/AMD, o caminho normal usa Mesa/Vulkan incluído na imagem. Quem usa driver proprietário NVIDIA pode precisar instalar o driver correspondente e as bibliotecas i386 `nvidia-driver-libs:i386` e `nvidia-vulkan-icd:i386`; isso depende do modelo e da versão do driver.
 - RPCS3, PCSX2, Dolphin e outros emuladores dependem muito de CPU, GPU e configuração; nenhum desempenho é garantido.
 - Emuladores não incluem ROMs, imagens de jogos, BIOS ou firmware. Use somente arquivos que você tem direito de usar.
 - A instalação de steam-devices cria regras udev que ampliam o acesso de usuários locais a dispositivos de entrada; use em uma máquina doméstica confiável e leia /usr/share/doc/steam-devices/README.Debian.
