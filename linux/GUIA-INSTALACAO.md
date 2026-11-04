@@ -363,6 +363,22 @@ O UxPlay é uma implementação de AirPlay Mirror e áudio AirPlay. Não é um r
 
 O atalho é iniciado manualmente e protegido por PIN; ele não fica aceitando conexões automaticamente ao ligar o computador.
 
+### Transmissão iniciada dentro do próprio aplicativo (destino "TV Sala")
+
+O objetivo de longo prazo é permitir que o telefone e a TV funcionem como em uma Smart TV compatível:
+
+1. Abra o serviço de streaming no celular.
+2. Toque no botão **Transmitir/Cast** dentro do aplicativo.
+3. Quando o serviço aceitar o receiver Smart TV OS, escolha **TV Sala**.
+4. A TV abre o receiver/app compatível e reproduz o conteúdo diretamente da internet.
+5. O celular controla a sessão (por exemplo, pausar, retomar e buscar), conforme os recursos permitidos pelo serviço.
+
+Isso **não é espelhamento de tela**. O app do telefone envia o pedido de reprodução para um receiver; a TV recebe o conteúdo. Porém, cada serviço decide quais aparelhos aceita.
+
+**Importante sobre a Netflix:** a documentação oficial atual lista apenas Chromecast de 3ª geração ou anterior sem controle remoto, Google Nest Hub e alguns modelos Vizio/Compal como destinos do Cast móvel. Um computador Linux com receiver genérico não está confirmado nessa lista. Assim, não é possível garantir que "TV Sala" apareça no botão de transmissão da Netflix. A Netflix também não oferece AirPlay. Para esse caso, a alternativa será abrir a Netflix diretamente na TV e usar o controle do sistema, ou futuramente o controle companion do Smart TV OS no celular.
+
+A compatibilidade de Prime Video, Disney+, Max, YouTube, Spotify e cada outro serviço deverá ser testada separadamente. Não basta o telefone estar na mesma rede: o app remetente precisa aceitar o protocolo e o receiver anunciado. Veja [Cast nativo dos aplicativos — destino TV Sala](CAST-APPS-E-RECEPTORES.md).
+
 ### Android — o que já existe e o que ainda será desenvolvido
 
 O KDE Discover com o catálogo Flathub permite instalar aplicativos de recepção que usem protocolos abertos, como o **FCast Receiver**, quando disponível no catálogo. O envio depende de um aplicativo Android que ofereça suporte ao protocolo FCast; isso não transforma o Smart TV OS em Chromecast universal.
