@@ -30,6 +30,9 @@ KNOWN = [
  ("jellyfin",("jellyfin",),"#AA5CC3","icons/jellyfin.svg"),
  ("vlc",("vlc media player","videolan"),"#FF8800",""),
  ("kodi",("kodi",),"#17B2E7",""),
+ ("xboxcloud",("xbox cloud gaming","xbox cloud"),"#107C10",""),
+ ("geforcenow",("geforce now","geforcenow"),"#76B900",""),
+ ("boosteroid",("boosteroid",),"#E23B2E",""),
  ("steamlink",("steam link","steamlink"),"#171A21",""),
  ("steam",("steam",),"#1B2838","icons/steam.svg"),
  ("xbox",("xbox",),"#107C10",""),
@@ -48,8 +51,10 @@ KNOWN = [
  ("dosbox",("dosbox",),"#455A64",""),
 ]
 
+CLOUD_GAME_IDS = {"xboxcloud","geforcenow","boosteroid"}
+
 GAME_LAUNCHER_IDS = {
-    "steam", "lutris", "heroic", "epic", "battlenet", "bottles", "moonlight", "steamlink",
+    "xboxcloud", "geforcenow", "boosteroid", "steam", "lutris", "heroic", "epic", "battlenet", "bottles", "moonlight", "steamlink",
     "retroarch", "dolphin", "pcsx2", "ppsspp", "rpcs3", "scummvm", "dosbox",
 }
 
@@ -83,8 +88,10 @@ def parse_desktop_file(path):
     is_launcher = app_id in GAME_LAUNCHER_IDS
     is_game = "game" in categories or is_launcher
     is_streaming_client = app_id in ("moonlight","steamlink")
+    is_cloud_game = app_id in CLOUD_GAME_IDS
     return {"id":app_id,"title":name,"icon":icon,"color":color,
             "is_game":is_game,"is_streaming_client":is_streaming_client,
+            "is_cloud_game":is_cloud_game,
             "is_native_game":("game" in categories and not is_launcher),
             "argv":argv,"desktop_file":str(path)}
 
@@ -267,7 +274,7 @@ class Handler(BaseHTTPRequestHandler):
         u=urllib.parse.urlsplit(self.path); path=urllib.parse.unquote(u.path); q=urllib.parse.parse_qs(u.query,keep_blank_values=True)
         if path=="/api/apps":
             self.server.apps=discover_apps()
-            self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game","is_streaming_client")} for a in self.server.apps]})
+            self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game","is_streaming_client","is_cloud_game")} for a in self.server.apps]})
         elif path=="/api/gaming":
             key=q.get("key",[""])[0]; raw=q.get("enabled",[""])[0]
             if key:
