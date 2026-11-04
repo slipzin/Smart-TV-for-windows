@@ -38,7 +38,7 @@ A evolução do projeto para um sistema independente, baseado em Debian 13, pens
 
 ## Comece a usar — Windows
 
-1. Baixe o arquivo `SmartTV-<versão>.zip) em **[Releases](../../releases/latest)** ou use a cópia disponível na pasta [download/](download/).
+1. Baixe o arquivo `SmartTV-<versão>.zip` em **[Releases](../../releases/latest)** ou use a cópia disponível na pasta [download/](download/).
 2. Extraia o conteúdo em uma pasta do computador ou em um pendrive.
 3. Execute `INICIAR-TV.bat`.
 4. Para sair do modo TV, segure **View + Menu** no controle, use **Ajustes → Sair do modo TV** ou pressione **Alt+F4**.
