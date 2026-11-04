@@ -18,11 +18,12 @@ Esta pasta contém a edição Linux experimental do Smart TV for Windows. A inte
 **Leia antes de criar o pendrive ou mexer nas partições do Windows:**
 
 ➡️ **[Guia completo da ISO, pendrive, particionamento, loja e AirPlay](GUIA-INSTALACAO.md)**  
-➡️ **[Visão do produto: interface premium, streaming, AirPlay, Android Cast e controle por celular](VISAO-TV-EXPERIENCIA.md)**
+➡️ **[Visão do produto: interface premium, streaming, AirPlay, Android Cast e controle por celular](VISAO-TV-EXPERIENCIA.md)**  
+➡️ **[Cast nativo nos apps: destino TV Sala e compatibilidade por serviço](CAST-APPS-E-RECEPTORES.md)**
 
 O guia explica a diferença entre a ISO no pendrive e o espaço que deve ser reservado no HD/SSD, como conferir o BitLocker, liberar espaço no Windows, testar o modo Live e o que deve ser preservado no particionamento.
 
-> **Estado experimental:** o Calamares incluído na ISO usa configuração genérica. O fluxo de instalação permanente e dual boot ainda precisa de validação em hardware real. AirPlay Mirror é básico (não AirPlay 2 completo). Google Cast universal, recepção Miracast, controle remoto próprio por celular e interface visual final são itens de roadmap. A recomendação atual é testar pelo pendrive e não instalar no disco principal com Windows até a validação.
+> **Estado experimental:** o Calamares incluído na ISO usa configuração genérica. O fluxo de instalação permanente e dual boot ainda precisa de validação em hardware real. AirPlay Mirror é básico (não AirPlay 2 completo). Cast nativo nos apps (destino TV Sala), Google Cast universal, recepção Miracast, controle remoto próprio por celular e interface visual final são itens de roadmap. A Netflix atualmente restringe o Cast do app móvel a uma lista limitada de aparelhos; receiver Linux genérico não tem compatibilidade confirmada. A recomendação atual é testar pelo pendrive e não instalar no disco principal com Windows até a validação.
 
 ## Rodar em um Debian já instalado
 
