@@ -1,0 +1,16 @@
+# Smart TV OS — adicionais Debian para Modo Console
+# steam-devices, BlueZ, PipeWire e desktop ficam na imagem TV base.
+steam-installer
+libglx-mesa0:i386
+mesa-vulkan-drivers:i386
+libgl1-mesa-dri:i386
+gamemode
+mangohud
+lutris
+vulkan-tools
+wine
+wine64
+wine32:i386
+winetricks
+dosbox
+scummvm
