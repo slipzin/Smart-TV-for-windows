@@ -22,7 +22,7 @@ chmod +x "$MOCK_BIN/vibecast"
 # 1. Missing credentials must fail closed before starting any service.
 MISSING_HOME="$TMP/missing"
 set +e
-env -u DISPLAY -u WAYLAND_DISPLAY HOME="$MISSING_HOME" \
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$MISSING_HOME" XDG_CONFIG_HOME="$MISSING_HOME/.config" \
   MOCK_PLAYER_ROOT="$MOCK_PLAYER" PATH="$MOCK_BIN:/usr/bin:/bin" \
   bash "$START" >"$TMP/missing.log" 2>&1
 MISSING_STATUS=$?
@@ -38,7 +38,7 @@ BAD_HOME="$TMP/bad"
 mkdir -p "$BAD_HOME/.config/smart-tv/cast"
 printf '{not valid json' > "$BAD_HOME/.config/smart-tv/cast/certs.json"
 set +e
-env -u DISPLAY -u WAYLAND_DISPLAY HOME="$BAD_HOME" \
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$BAD_HOME" XDG_CONFIG_HOME="$BAD_HOME/.config" \
   MOCK_PLAYER_ROOT="$MOCK_PLAYER" PATH="$MOCK_BIN:/usr/bin:/bin" \
   bash "$START" >"$TMP/bad.log" 2>&1
 BAD_STATUS=$?
@@ -84,7 +84,7 @@ touch "$BROWSER_TEST_MARKER"
 EOF
 chmod +x "$MOCK_BIN/chromium"
 
-env -u DISPLAY -u WAYLAND_DISPLAY HOME="$VALID_HOME" \
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$VALID_HOME" XDG_CONFIG_HOME="$VALID_HOME/.config" \
   MOCK_PLAYER_ROOT="$MOCK_PLAYER" \
   BROWSER_TEST_MARKER="$TMP/browser-opened" \
   PATH="$MOCK_BIN:/usr/bin:/bin" \
