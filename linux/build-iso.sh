@@ -196,6 +196,7 @@ xdg-desktop-portal
 xdg-desktop-portal-kde
 bluez
 blueman
+steam-devices
 sudo
 python3
 chromium
