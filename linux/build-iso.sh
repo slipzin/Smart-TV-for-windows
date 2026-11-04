@@ -25,15 +25,19 @@ cd "$WORK"
 
 # Build a pinned VibeCast receiver from source. The player name and public
 # receiver name are patched to the product's friendly name: "TV Sala".
-VIBECAST_SRC="$WORK/vibecast-src"
-VIBECAST_TARGET="$WORK/vibecast-target"
+mkdir -p "$ROOT/out"
+VIBECAST_BUILD="$ROOT/out/vibecast-build"
+rm -rf "$VIBECAST_BUILD"
+mkdir -p "$VIBECAST_BUILD"
+VIBECAST_SRC="$VIBECAST_BUILD/source"
+VIBECAST_TARGET="$VIBECAST_BUILD/target"
 git clone --depth 1 --branch v0.2.0 https://github.com/emilsvennesson/vibecast.git "$VIBECAST_SRC"
 
-export CARGO_HOME="$WORK/cargo-home"
-export RUSTUP_HOME="$WORK/rustup-home"
+export CARGO_HOME="$VIBECAST_BUILD/cargo-home"
+export RUSTUP_HOME="$VIBECAST_BUILD/rustup-home"
 if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$WORK/rustup-init.sh"
-  sh "$WORK/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain 1.87.0
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$VIBECAST_BUILD/rustup-init.sh"
+  sh "$VIBECAST_BUILD/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain 1.87.0
 fi
 export PATH="$CARGO_HOME/bin:$PATH"
 rustup toolchain install 1.87.0 --profile minimal
