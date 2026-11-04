@@ -70,7 +70,7 @@ class ProfileManifestTests(unittest.TestCase):
         self.assertIn("console-flatpaks.txt", build)
         self.assertIn("console-backports-packages.txt", build)
         # Console manifests are copied for the opt-in installer, not passed to live-build.
-        self.assertNotIn('"$ROOT/linux/profiles/console-apt-packages.txt" \\\n  "$WORK/config/package-lists/', build)
+        self.assertNotIn('console-apt-packages.txt" "$WORK/config/package-lists/', build)
 
     def test_console_installer_dry_run_uses_exact_manifests(self):
         env = os.environ.copy()
