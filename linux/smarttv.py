@@ -104,7 +104,7 @@ def steam_library_roots(home):
     return roots
 
 
-def steam_games(home):
+def steam_games(home, steam_argv=None):
     games=[]; seen=set()
     for root in steam_library_roots(home):
         for manifest in sorted((root/"steamapps").glob("appmanifest_*.acf")):
@@ -116,9 +116,12 @@ def steam_games(home):
             app_id=app.group(1); seen.add(app_id)
             title=re.sub(r'\\(["\\])',r'\1',name.group(1)).strip()
             if not title: continue
+            command=list(steam_argv or ["steam"])
+            if "-bigpicture" not in command: command.append("-bigpicture")
+            command.extend(["-applaunch",app_id])
             games.append({"id":"steam-game:"+app_id,"title":title,"icon":"","color":"#1B2838",
                           "is_game":True,"is_native_game":False,
-                          "argv":["xdg-open","steam://rungameid/"+app_id],"desktop_file":""})
+                          "argv":command,"desktop_file":""})
     return games
 
 
@@ -167,7 +170,8 @@ def discover_apps(home=None):
     if "steam" in apps:
         apps["steam"]["title"]="Steam"
         if "-bigpicture" not in apps["steam"]["argv"]: apps["steam"]["argv"].append("-bigpicture")
-    for game in steam_games(home):
+    steam_argv=apps.get("steam",{}).get("argv")
+    for game in steam_games(home,steam_argv):
         if game["id"] not in apps: apps[game["id"]]=game
     return sorted(apps.values(),key=lambda a:a["title"].casefold())
 
