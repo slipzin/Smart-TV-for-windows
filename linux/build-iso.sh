@@ -23,6 +23,56 @@ mkdir -p "$WORK/config/package-lists" \
   "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d" "$WORK/config/hooks/live"
 cd "$WORK"
 
+# Build a pinned VibeCast receiver from source. The player name and public
+# receiver name are patched to the product's friendly name: "TV Sala".
+VIBECAST_SRC="$WORK/vibecast-src"
+VIBECAST_TARGET="$WORK/vibecast-target"
+git clone --depth 1 --branch v0.2.0 https://github.com/emilsvennesson/vibecast.git "$VIBECAST_SRC"
+
+export CARGO_HOME="$WORK/cargo-home"
+export RUSTUP_HOME="$WORK/rustup-home"
+if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$WORK/rustup-init.sh"
+  sh "$WORK/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain 1.87.0
+fi
+export PATH="$CARGO_HOME/bin:$PATH"
+rustup toolchain install 1.87.0 --profile minimal
+rustup default 1.87.0
+
+python3 - "$VIBECAST_SRC" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+manager = root / "crates/vibecast-platform/src/manager.rs"
+text = manager.read_text(encoding="utf-8")
+old = 'let friendly_name = format!("{} [vibecast]", registration.name);'
+new = 'let friendly_name = registration.name.clone();'
+if text.count(old) != 1:
+    raise SystemExit("VibeCast 0.2.0 manager naming code changed; review patch before building.")
+manager.write_text(text.replace(old, new), encoding="utf-8")
+
+player = root / "crates/vibecast-bridge/assets/player.js"
+text = player.read_text(encoding="utf-8")
+old_name = 'name: "Browser",'
+old_url = 'return wsProtocol + "://" + window.location.host + "/player";'
+if text.count(old_name) != 1 or text.count(old_url) != 1:
+    raise SystemExit("VibeCast browser player changed; review TV Sala patch before building.")
+text = text.replace(old_name, 'name: "TV Sala",')
+text = text.replace(old_url, 'return "ws://127.0.0.1:8010/player";')
+player.write_text(text, encoding="utf-8")
+PY
+
+CARGO_TARGET_DIR="$VIBECAST_TARGET" cargo build --release --locked --manifest-path "$VIBECAST_SRC/Cargo.toml" -p vibecast-cli
+install -D -m 0755 "$VIBECAST_TARGET/release/vibecast" \
+  "$WORK/config/includes.chroot/usr/local/bin/vibecast"
+install -D -m 0644 "$VIBECAST_SRC/crates/vibecast-bridge/assets/player.html" \
+  "$WORK/config/includes.chroot/usr/local/share/smarttv/cast-player/player.html"
+install -D -m 0644 "$VIBECAST_SRC/crates/vibecast-bridge/assets/player.js" \
+  "$WORK/config/includes.chroot/usr/local/share/smarttv/cast-player/player.js"
+install -D -m 0644 "$VIBECAST_SRC/LICENSE" \
+  "$WORK/config/includes.chroot/usr/share/doc/smarttv-vibecast/LICENSE"
+
 python3 "$ROOT/pc/build.py" --out "$WORK/windows-build"
 cp -a "$WORK/windows-build/sistema/web" "$WORK/config/includes.chroot/usr/local/lib/smarttv/web"
 cp "$ROOT/linux/smarttv.py" "$ROOT/linux/run.sh" "$WORK/config/includes.chroot/usr/local/lib/smarttv/"
@@ -71,6 +121,22 @@ Terminal=false
 Categories=Network;AudioVideo;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop"
+
+install -D -m 0755 "$ROOT/linux/cast/start.sh" \
+  "$WORK/config/includes.chroot/usr/local/bin/smart-tv-cast"
+cp "$ROOT/linux/cast/README.md" \
+  "$WORK/config/includes.chroot/usr/share/doc/smarttv-vibecast/SMART-TV-OS-SETUP.md"
+cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Iniciar Google Cast - TV Sala.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Iniciar Google Cast - TV Sala
+Comment=Inicia o receptor Google Cast quando a autenticação estiver configurada
+Exec=konsole -e /usr/local/bin/smart-tv-cast
+Icon=network-wireless
+Terminal=false
+Categories=Network;AudioVideo;
+EOF
+chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Iniciar Google Cast - TV Sala.desktop"
 
 cat > "$WORK/config/hooks/live/0500-flathub.hook.chroot" <<'EOF'
 #!/bin/sh
