@@ -1,0 +1,2 @@
+# Pacotes extras apenas no Debian Trixie Backports para Modo Console
+gamescope
