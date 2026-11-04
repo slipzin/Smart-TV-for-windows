@@ -62,7 +62,7 @@ jobs:
                 xorriso \
                 python3
               linux/test.sh
-              linux/validate-profile-packages.sh
+              bash linux/validate-profile-packages.sh
               linux/build-iso.sh
               cd out
               sha256sum SmartTV-OS-live-trixie-amd64.iso > SmartTV-OS-live-trixie-amd64.iso.sha256
