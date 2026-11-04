@@ -84,6 +84,14 @@ class DesktopTests(unittest.TestCase):
             self.assertTrue(smarttv.gaming_settings(home)["mangohud"])
             self.assertFalse(smarttv.set_gaming_setting("unknown", True, home))
 
+    def test_experience_profile_is_persistent_and_validated(self):
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d)
+            self.assertEqual(smarttv.gaming_settings(home)["profile"], "tv")
+            self.assertTrue(smarttv.set_experience_profile("console", home))
+            self.assertEqual(smarttv.gaming_settings(home)["profile"], "console")
+            self.assertFalse(smarttv.set_experience_profile("unknown", home))
+
     def test_native_games_get_optional_performance_wrappers(self):
         item = {"id": "native", "is_native_game": True, "argv": ["/usr/games/example"]}
         which = { "gamemoderun": "/usr/bin/gamemoderun", "mangohud": "/usr/bin/mangohud" }
@@ -186,6 +194,21 @@ class HttpTests(unittest.TestCase):
             result = json.loads(body.decode("utf-8"))
             self.assertFalse(result["gamemode"])
             self.assertTrue((Path(self.temp.name) / "smart-tv/gaming.json").is_file())
+
+    def test_profile_api_reads_and_updates_mode(self):
+        with mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": self.temp.name}):
+            status, _, body = self.get("/api/profile")
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(body.decode("utf-8"))["profile"], "tv")
+            status, _, body = self.get("/api/profile?mode=console")
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(body.decode("utf-8"))["profile"], "console")
+            self.assertTrue((Path(self.temp.name) / "smart-tv/gaming.json").is_file())
+
+    def test_profile_api_rejects_unknown_mode(self):
+        status, _, body = self.get("/api/profile?mode=server")
+        self.assertEqual(status, 400)
+        self.assertFalse(json.loads(body.decode("utf-8"))["ok"])
 
     def test_gaming_api_rejects_unknown_settings(self):
         status, _, body = self.get("/api/gaming?key=unknown&enabled=1")
