@@ -10,17 +10,19 @@ Esta pasta contém a edição Linux experimental do Smart TV for Windows. A inte
 - Integração opcional com Steam Big Picture quando a Steam estiver instalada.
 - Interface Smart TV em tela cheia usando Chromium e suporte à Gamepad API.
 - Base de ISO Live Debian 13 Trixie amd64 com KDE Plasma.
-- Loja KDE Discover e backend Flatpak incluídos na lista de pacotes da imagem.
+- Loja KDE Discover, backend Flatpak e catálogo Flathub configurado na imagem.
+- UxPlay e Avahi para recepção AirPlay Mirror básica, iniciada manualmente pelo atalho Receber AirPlay e protegida por PIN.
 
 ## Guia para baixar, testar e instalar
 
 **Leia antes de criar o pendrive ou mexer nas partições do Windows:**
 
-➡️ **[Guia completo da ISO, pendrive, particionamento e dual boot](GUIA-INSTALACAO.md)**
+➡️ **[Guia completo da ISO, pendrive, particionamento, loja e AirPlay](GUIA-INSTALACAO.md)**  
+➡️ **[Visão do produto: interface premium, streaming, AirPlay, Android Cast e controle por celular](VISAO-TV-EXPERIENCIA.md)**
 
 O guia explica a diferença entre a ISO no pendrive e o espaço que deve ser reservado no HD/SSD, como conferir o BitLocker, liberar espaço no Windows, testar o modo Live e o que deve ser preservado no particionamento.
 
-> **Estado experimental:** o Calamares incluído na ISO usa configuração genérica. O fluxo de instalação permanente e dual boot ainda precisa de validação em hardware real. A recomendação atual é testar pelo pendrive e não instalar no disco principal com Windows até essa validação.
+> **Estado experimental:** o Calamares incluído na ISO usa configuração genérica. O fluxo de instalação permanente e dual boot ainda precisa de validação em hardware real. AirPlay Mirror é básico (não AirPlay 2 completo). Google Cast universal, recepção Miracast, controle remoto próprio por celular e interface visual final são itens de roadmap. A recomendação atual é testar pelo pendrive e não instalar no disco principal com Windows até a validação.
 
 ## Rodar em um Debian já instalado
 
