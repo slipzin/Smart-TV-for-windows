@@ -36,7 +36,7 @@ A interface Linux procura aplicativos que tenham lançadores de desktop compatí
 
 ### O que não está incluído ou não é garantido
 
-- **Steam não vem pré-instalada nesta ISO.** A integração do projeto pode abrir Steam em Big Picture quando ela estiver instalada no sistema; a instalação da Steam e de componentes adicionais é separada.
+- **Steam Installer está incluído na ISO.** Na primeira abertura ele baixa e instala o cliente Steam na conta do usuário; os jogos são baixados diretamente para o disco Linux. Isso não inclui jogos nem contas Steam.
 - Nem todo aplicativo Windows tem versão Linux.
 - Compatibilidade de jogos depende de GPU, drivers, Proton e sistemas antitrapaça. Alguns jogos não funcionam no Linux.
 - Serviços de streaming podem ter limitações de DRM, resolução ou controle dependendo do serviço e do navegador.
@@ -73,6 +73,8 @@ A partição Linux principal, montada em /, guarda o sistema e o espaço usado p
 **Não é necessário criar uma partição separada para /home, para a loja ou para aplicativos.** Para uma primeira instalação, manter sistema e arquivos do usuário dentro da mesma partição Linux reduz a quantidade de decisões e erros possíveis.
 
 Uma partição adicional para jogos pode ser planejada mais tarde, por exemplo uma partição ext4 montada em /games, ou uma biblioteca em outro SSD. Isso é opcional e não deve ser feito por quem ainda não domina particionamento.
+
+Para jogos Steam/Proton, mantenha a biblioteca no armazenamento Linux (ext4) ou em outro volume Linux adequado. Não recomendamos compartilhar a mesma biblioteca Steam entre Windows e Linux numa partição NTFS: os prefixos Proton, links simbólicos e diferenças de nomes/maiúsculas podem causar incompatibilidades. A partição Windows deve continuar preservada para o Windows.
 
 ## 4. Requisitos
 
