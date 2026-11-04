@@ -43,7 +43,7 @@ class ProfileManifestTests(unittest.TestCase):
         for item in (
             "com.heroicgameslauncher.hgl", "com.usebottles.bottles",
             "org.libretro.RetroArch", "org.DolphinEmu.dolphin-emu",
-            "net.pcsx2.PCSX2", "net.rpcs3.PCSX3",
+            "net.pcsx2.PCSX2", "net.rpcs3.RPCS3",
         ):
             self.assertIn(item, flatpaks)
         for item in flatpaks:
