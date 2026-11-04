@@ -3,9 +3,7 @@ set -euo pipefail
 
 DATA_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/smart-tv/cast"
 CERTS_FILE="$DATA_DIR/certs.json"
-PLAYER_DIR="/usr/local/share/smarttv/cast-player"
 LOG_FILE="$DATA_DIR/vibecast.log"
-PLAYER_LOG="$DATA_DIR/player-http.log"
 BROWSER_LOG="$DATA_DIR/player-browser.log"
 
 show_error() {
@@ -78,11 +76,6 @@ EOF
   chmod 600 "$DATA_DIR/config.toml"
 fi
 
-if [ ! -s "$PLAYER_DIR/player.html" ] || [ ! -s "$PLAYER_DIR/player.js" ]; then
-  show_error "Os arquivos do player Google Cast não foram encontrados em $PLAYER_DIR."
-  exit 1
-fi
-
 if command -v chromium >/dev/null 2>&1; then
   BROWSER="$(command -v chromium)"
 elif command -v chromium-browser >/dev/null 2>&1; then
@@ -96,12 +89,9 @@ mkdir -p "$DATA_DIR/browser-profile"
 
 vibecast --data-dir "$DATA_DIR" --model "Smart TV OS" --bind-host 0.0.0.0 --player-port 8010 >>"$LOG_FILE" 2>&1 &
 RECEIVER_PID=$!
-python3 -m http.server 8020 --bind 127.0.0.1 --directory "$PLAYER_DIR" >>"$PLAYER_LOG" 2>&1 &
-PLAYER_HTTP_PID=$!
-
 cleanup() {
-  kill "$PLAYER_HTTP_PID" "$RECEIVER_PID" 2>/dev/null || true
-  wait "$PLAYER_HTTP_PID" "$RECEIVER_PID" 2>/dev/null || true
+  kill "$RECEIVER_PID" 2>/dev/null || true
+  wait "$RECEIVER_PID" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -124,5 +114,5 @@ fi
 "$BROWSER" --no-first-run --disable-session-crashed-bubble \
   --user-data-dir="$DATA_DIR/browser-profile" \
   --kiosk --autoplay-policy=no-user-gesture-required \
-  http://127.0.0.1:8020/ >>"$BROWSER_LOG" 2>&1
+  http://127.0.0.1:8010/ >>"$BROWSER_LOG" 2>&1
 
