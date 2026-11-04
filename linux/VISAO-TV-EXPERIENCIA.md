@@ -162,7 +162,9 @@ Todos os receptores devem ter estados claros: desligado, procurando, aguardando 
 
 - [ ] Avaliar e testar um receiver Miracast sink real em hardware suportado.
 - [ ] Validar compatibilidade Wi‑Fi Direct/P2P sem derrubar a conexão normal da TV.
-- [ ] Escolher uma implementação Google Cast receiver compatível e verificar requisitos de registro, receiver IDs e DRM.
+- [x] Integrar VibeCast v0.2.0 como receptor Cast V2, com descoberta mDNS e player local TV Sala.
+- [ ] Configurar material válido de autenticação Cast e validar descoberta/conexão com apps sender reais.
+- [ ] Validar receiver IDs, DRM e compatibilidade por serviço.
 - [ ] Implementar nome amigável configurável, padrão TV Sala, e fluxo Sender → Receiver sem espelhamento.
 - [ ] Validar cada aplicativo móvel separadamente; não inferir suporte Netflix a partir de testes com outros apps.
 - [ ] Para serviços que não aceitam receiver genérico, abrir o cliente do serviço na TV e disponibilizar controle companion autorizado.
