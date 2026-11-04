@@ -72,10 +72,6 @@ CARGO_TARGET_DIR="$VIBECAST_TARGET" cargo test --release --locked --manifest-pat
 CARGO_TARGET_DIR="$VIBECAST_TARGET" cargo build --release --locked --manifest-path "$VIBECAST_SRC/Cargo.toml" -p vibecast-cli
 install -D -m 0755 "$VIBECAST_TARGET/release/vibecast" \
   "$WORK/config/includes.chroot/usr/local/bin/vibecast"
-install -D -m 0644 "$VIBECAST_SRC/crates/vibecast-bridge/assets/player.html" \
-  "$WORK/config/includes.chroot/usr/local/share/smarttv/cast-player/player.html"
-install -D -m 0644 "$VIBECAST_SRC/crates/vibecast-bridge/assets/player.js" \
-  "$WORK/config/includes.chroot/usr/local/share/smarttv/cast-player/player.js"
 install -D -m 0644 "$VIBECAST_SRC/LICENSE" \
   "$WORK/config/includes.chroot/usr/share/doc/smarttv-vibecast/LICENSE"
 
