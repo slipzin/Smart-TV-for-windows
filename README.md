@@ -5,6 +5,12 @@ Transforme o computador numa smart TV. Uma tela inicial em tela cheia, no estilo
 Prime Video, Disney+, Apple TV, Spotify, Xbox, Battle.net, Steam no modo Big Picture e outros), sem nada pelo
 navegador. Não instala nada e não muda o Windows: roda direto de um pendrive.
 
+## Projeto e prompts de desenvolvimento
+
+Este repositório reúne duas edições relacionadas: **Smart TV for Windows**, um launcher portátil para aplicativos já instalados no Windows, e **Smart TV OS**, uma edição Linux experimental baseada em Debian 13 para transformar um PC em uma central de entretenimento de sala. A documentação registra o estado real de cada recurso, os limites de compatibilidade e os passos de teste.
+
+**[Biblioteca de prompts para continuar o desenvolvimento com IA](PROMPTS/README.md)** — contexto geral, experiência da interface, arquitetura Linux/ISO e critérios de qualidade e publicação.
+
 ## Destaques
 
 - **Tela inicial de TV**: prateleira de apps, relógio, clima, cotações e destaques de filmes e séries (com uma chave
