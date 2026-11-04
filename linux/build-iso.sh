@@ -170,20 +170,6 @@ fi
 EOF
 chmod 0755 "$WORK/config/hooks/live/0500-flathub.hook.chroot"
 
-# Debian's Steam package installs the per-user client on first launch. Enable
-# i386 before installing it so the official 32-bit runtime dependencies resolve.
-cat > "$WORK/config/hooks/live/0550-steam-installer.hook.chroot" <<'EOF'
-#!/bin/sh
-set -eu
-dpkg --add-architecture i386
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  steam-installer steam-devices \
-  libglx-mesa0:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386
-rm -rf /var/lib/apt/lists/*
-EOF
-chmod 0755 "$WORK/config/hooks/live/0550-steam-installer.hook.chroot"
-
 echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/grub.d/50-smarttv-os-prober.cfg"
 
 cat > "$WORK/config/package-lists/smarttv.list.chroot" <<'EOF'
@@ -218,10 +204,6 @@ flatpak
 firmware-linux
 firmware-linux-nonfree
 mesa-vulkan-drivers
-vulkan-tools
-gamemode
-mangohud
-lutris
 vlc
 kodi
 uxplay
