@@ -1,82 +1,115 @@
-# Smart TV for Windows + Smart TV OS (Linux)
+# Smart TV — transforme seu PC em uma experiência de TV
 
-Transforme o computador numa smart TV. Uma tela inicial em tela cheia, no estilo das TVs mais modernas, comandada pelo
-**controle de video game**, pelo teclado ou pelo mouse. Ela abre os **aplicativos instalados no Windows** (Netflix,
-Prime Video, Disney+, Apple TV, Spotify, Xbox, Battle.net, Steam no modo Big Picture e outros), sem nada pelo
-navegador. Não instala nada e não muda o Windows: roda direto de um pendrive.
+**Leve a experiência da sala de estar para o computador.** O Smart TV é um projeto que transforma PCs em centrais de entretenimento, com uma interface em tela cheia, navegação pensada para a televisão e suporte a controle de videogame, teclado e mouse.
 
-## Projeto e prompts de desenvolvimento
+A proposta reúne filmes, séries, música, aplicativos e jogos em uma experiência simples de usar no sofá — aproveitando os serviços e programas que você já utiliza. O projeto possui duas edições complementares: uma versão portátil para Windows e uma edição de sistema operacional Linux em desenvolvimento.
 
-Este repositório reúne duas edições relacionadas: **Smart TV for Windows**, um launcher portátil para aplicativos já instalados no Windows, e **Smart TV OS**, uma edição Linux experimental baseada em Debian 13 para transformar um PC em uma central de entretenimento de sala. A documentação registra o estado real de cada recurso, os limites de compatibilidade e os passos de teste.
+## Duas maneiras de transformar seu PC
 
-**[Biblioteca de prompts para continuar o desenvolvimento com IA](PROMPTS/README.md)** — contexto geral, experiência da interface, arquitetura Linux/ISO e critérios de qualidade e publicação.
+### Smart TV for Windows
 
-## Destaques
+Uma central de entretenimento que funciona sobre o Windows, sem substituir o sistema e sem exigir uma instalação tradicional. Basta extrair os arquivos e iniciar o modo TV.
 
-- **Tela inicial de TV**: prateleira de apps, relógio, clima, cotações e destaques de filmes e séries (com uma chave
-  gratuita do TMDB, digitada uma vez nos ajustes).
-- **Controle de video game**: Xbox, PlayStation e outros na tela inicial. Dentro dos apps, o controle de Xbox ganha
-  mouse no analógico direito e o botão View volta para a tela inicial.
-- **Jogos**: o botão Jogos abre a Steam no modo Big Picture; o Call of Duty da Steam aparece sozinho.
-- **Personalização**:
-  - plano de fundo: 5 animados (Aurora, Ondas, Céu estrelado, Cores fluidas, Bolhas), 6 estáticos, ou os seus:
-    imagens (inclusive GIF animado) e vídeos da pasta **Fundos**, com troca automática;
-  - velocidade da animação, escurecer e desfocar o fundo, tema claro ou escuro, idioma, cidade do clima;
-  - **abrir junto com o Windows**, para o PC já ligar na tela de TV.
-- **Leve**: a animação do fundo para sozinha quando um app ou jogo está na frente.
+- **Seus aplicativos em um só lugar:** acesse aplicativos instalados no Windows, como Netflix, Prime Video, Disney+, Apple TV, Spotify, Xbox, Battle.net e outros.
+- **Feito para o sofá:** navegue pela interface usando controle de Xbox, PlayStation ou outros controles compatíveis, além de teclado e mouse.
+- **Jogos sem complicação:** abra a Steam diretamente no modo Big Picture e acesse sua biblioteca.
+- **Sua TV, do seu jeito:** personalize temas, planos de fundo, animações, idioma, cidade do clima e comportamento da inicialização.
+- **Prático e portátil:** execute pelo próprio computador ou por um pendrive, sem alterar a instalação do Windows.
 
-## Instalar
+### Smart TV OS — edição Linux experimental
 
-1. Baixe o `SmartTV-<versão>.zip` em **[Releases](../../releases/latest)** e extraia no pendrive ou no PC.
-   (O mesmo ZIP também fica em [`download/`](download/).)
-2. Dê dois cliques em **`INICIAR-TV.bat`**.
-3. Para sair: segure **View + Menu** no controle, use **Ajustes > Sair do modo TV**, ou aperte **Alt+F4**.
+A evolução do projeto para um sistema independente, baseado em Debian 13, pensado para transformar um PC em uma plataforma dedicada ao entretenimento da sala.
 
-Precisa de Windows 10 ou 11 com o Microsoft Edge (já vem no Windows). Instale pela Microsoft Store os apps que quiser
-ver na tela: eles aparecem sozinhos.
+- **Interface de TV em um sistema próprio:** ambiente Linux com KDE Plasma, inicialização Live por pendrive e loja KDE Discover.
+- **Do streaming aos jogos:** perfil Modo TV para a experiência de entretenimento e perfil Modo Console para jogos locais compatíveis.
+- **Ecossistema aberto:** suporte a aplicativos Linux e Flatpak, com integração gamer planejada em torno de Steam, Proton, Heroic e emuladores.
+- **Recursos de transmissão em desenvolvimento:** pesquisa e implementação de recursos como AirPlay, Google Cast, Miracast e controle pelo celular, respeitando as limitações reais de cada tecnologia.
 
-## Para desenvolver
+> **Estado do projeto:** a edição Windows e a edição Linux têm escopos diferentes. O Smart TV OS ainda é experimental; compatibilidade de hardware, instalação permanente em dual boot e alguns recursos de transmissão precisam de validação. Consulte o guia Linux antes de instalar e prefira testar a ISO em modo Live.
 
-- `python3 pc/build.py --out out/SmartTV --zip out/SmartTV.zip` monta a pasta e o ZIP.
-- Subir a versão em `pc/build.py` (`VERSION`) e enviar ao `main` publica a Release dela sozinha (`.github/workflows/release.yml`).
-- `pc/test.sh [minutos]` testa tudo sem precisar de Windows: compatibilidade com o Windows PowerShell 5.1, o código
-  do controle em C# 5, as decisões do controle, o servidor de verdade num "PC simulado" (apps, fundos, vídeos em
-  trechos, abrir com o Windows, ataques) e a tela no Chromium com um controle simulado (8 tamanhos de tela, todos os
-  planos de fundo e um teste longo de resistência).
+## O que você encontra na experiência Windows
 
-| Pasta | O quê |
-|---|---|
-| `web/` | a tela inicial (HTML, CSS e JavaScript ES5) |
-| `web/fundos.js` | os planos de fundo |
-| `pc/tv.ps1` | o lado do Windows: servidor local, apps, controle |
-| `assets/` | idiomas, ícones, fonte e ajustes iniciais |
+- **Tela inicial completa:** prateleira de aplicativos, relógio, clima, cotações e destaques de filmes e séries. Os dados de filmes e séries usam uma chave gratuita do TMDB, configurada uma única vez nos ajustes.
+- **Navegação por controle:** compatibilidade com controles Xbox, PlayStation e outros. Em aplicativos, o controle Xbox também pode oferecer ponteiro pelo analógico direito; o botão View retorna à tela inicial.
+- **Acesso aos jogos:** atalho para abrir a Steam em Big Picture. O Call of Duty instalado pela Steam é reconhecido automaticamente.
+- **Personalização visual:** fundos animados e estáticos, imagens, GIFs e vídeos próprios, alternância automática, velocidade das animações, desfoque, escurecimento e temas claro ou escuro.
+- **Configurações práticas:** idioma, cidade do clima e opção para iniciar junto com o Windows.
+- **Uso consciente de recursos:** a animação do plano de fundo é pausada automaticamente quando outro aplicativo ou jogo está em primeiro plano.
 
+## Comece a usar — Windows
 
-## Edição Linux experimental (dual boot em desenvolvimento)
+1. Baixe o arquivo `SmartTV-<versão>.zip) em **[Releases](../../releases/latest)** ou use a cópia disponível na pasta [download/](download/).
+2. Extraia o conteúdo em uma pasta do computador ou em um pendrive.
+3. Execute `INICIAR-TV.bat`.
+4. Para sair do modo TV, segure **View + Menu** no controle, use **Ajustes → Sair do modo TV** ou pressione **Alt+F4**.
 
-A branch \`feature/linux-dual-boot-foundation\` inicia a migração para um sistema Linux independente, sem remover a edição Windows. Ela preserva a interface web, adiciona um backend Linux para aplicativos nativos/Flatpak e prepara uma ISO Live Debian 13.7 amd64 com KDE Plasma e a loja KDE Discover.
+**Requisitos:** Windows 10 ou 11 e Microsoft Edge. Instale pela Microsoft Store os aplicativos que deseja acessar; os aplicativos compatíveis instalados são identificados pela interface.
 
-> **Atenção:** a ISO é experimental. O instalador Calamares usa uma configuração genérica e o fluxo de instalação permanente ao lado do Windows ainda não foi validado em hardware real. A recomendação atual é testar pelo pendrive no modo Live; não instale no disco principal com Windows até que o procedimento seja validado.
+## Smart TV OS — Linux
 
-**[Leia o guia completo da ISO, criação do pendrive, espaço em disco, instalação, loja e AirPlay](linux/GUIA-INSTALACAO.md).**  
-**[Baixe a ISO publicada e veja como gerar/publicar novas versões](linux/COMO-PUBLICAR-ISO.md).**  
-**[Veja a visão completa do produto: interface premium, streaming, AirPlay, Android Cast e controle pelo celular](linux/VISAO-TV-EXPERIENCIA.md).**
-**[Veja a integração gamer Linux: jogos locais pela Steam, Proton, controles, Heroic e emuladores](linux/gaming/README.md).**  
-**[Veja como funcionará a transmissão dentro dos apps, com destino TV Sala](linux/CAST-APPS-E-RECEPTORES.md).**
-**[Veja os dois perfis de jogos Linux: Modo TV com streaming e Modo Console com jogos locais](linux/gaming/README.md).**
+A edição Linux está sendo construída como uma alternativa independente para quem deseja dedicar um computador à experiência de TV. A ISO Live permite iniciar o sistema por um pendrive e avaliar o ambiente antes de qualquer instalação no disco.
 
-Importante sobre as partições: a ISO é gravada no pendrive, não em uma partição do HD. A ISO experimental inclui UxPlay para AirPlay Mirror básico, ativado manualmente e protegido por PIN; Cast nativo dentro dos apps (destino TV Sala), Google Cast universal, Miracast receiver e controle remoto próprio pelo celular ainda estão em desenvolvimento. A Netflix limita atualmente o Cast móvel a determinados aparelhos; um receiver Linux genérico não tem suporte confirmado. Para um futuro dual boot, o Windows deve liberar espaço como **Não alocado**; o Linux será instalado nesse espaço em uma partição própria. O sistema e os aplicativos da loja usam essa partição Linux. Não formate a partição EFI ou as partições do Windows. Uma partição exclusiva para jogos é opcional.
+**Atenção:** a ISO é experimental. O instalador Calamares utiliza uma configuração genérica e o processo de instalação permanente ao lado do Windows ainda não foi validado em hardware real. No momento, recomendamos testar pelo pendrive em modo Live e não instalar no disco principal até que o procedimento esteja devidamente validado.
 
-Para testar o backend diretamente em Debian 13:
+- [Guia de instalação, criação do pendrive, particionamento, loja e transmissão](linux/GUIA-INSTALACAO.md)
+- [Como baixar, gerar e publicar a ISO](linux/COMO-PUBLICAR-ISO.md)
+- [Visão do produto e experiência Smart TV](linux/VISAO-TV-EXPERIENCIA.md)
+- [Jogos no Linux: Steam, Proton, controles, Heroic e emuladores](linux/gaming/README.md)
+- [Transmissão entre aplicativos e receptores — destino TV Sala](linux/CAST-APPS-E-RECEPTORES.md)
 
-    sudo apt install python3 chromium curl
-    ./linux/run.sh
+### Sobre transmissão e dual boot
+
+A ISO experimental inclui UxPlay para espelhamento AirPlay básico, iniciado manualmente e protegido por PIN. Google Cast universal, receptor Miracast, controle remoto próprio pelo celular e transmissão integrada dentro dos aplicativos ainda estão em desenvolvimento ou sem compatibilidade confirmada. O suporte varia conforme o aplicativo, o dispositivo e o protocolo; não há garantia de funcionamento universal.
+
+Para um futuro dual boot, o espaço destinado ao Linux deve ser liberado no Windows como **Não alocado**. O Linux deverá ocupar uma partição própria. Não formate a partição EFI nem as partições existentes do Windows. Uma partição separada para jogos é opcional. Consulte o [guia completo](linux/GUIA-INSTALACAO.md) antes de alterar o disco.
+
+## Biblioteca de prompts e desenvolvimento com IA
+
+O repositório também mantém uma biblioteca organizada de prompts para apoiar a continuidade do projeto com ferramentas de IA. Ela reúne o contexto e as regras gerais, a experiência da interface, a arquitetura Linux/ISO e os critérios de qualidade, testes e publicação.
+
+**[Acessar a biblioteca de prompts](PROMPTS/README.md)**
+
+## Desenvolvimento
+
+### Windows
+
+- Gere a pasta e o ZIP de distribuição:
+
+  `python3 pc/build.py --out out/SmartTV --zip out/SmartTV.zip`
+
+- Para executar a suíte de testes:
+
+  `pc/test.sh [minutos]`
+
+A suíte verifica compatibilidade com Windows PowerShell 5.1, código do controle em C# 5, decisões de navegação, servidor local em ambiente simulado e interface Chromium em diferentes tamanhos de tela, fundos e testes de resistência.
+
+### Linux
+
+Para testar o backend em Debian 13:
+
+```bash
+sudo apt install python3 chromium curl
+./linux/run.sh
+```
 
 Para construir a ISO experimental em Debian 13:
 
-    sudo apt install live-build debootstrap squashfs-tools xorriso
-    sudo linux/build-iso.sh
+```bash
+sudo apt install live-build debootstrap squashfs-tools xorriso
+sudo linux/build-iso.sh
+```
+
+## Estrutura do projeto
+
+| Pasta | Conteúdo |
+|---|---|
+| `web/` | Interface principal: HTML, CSS e JavaScript |
+| `web/fundos.js` | Planos de fundo da edição Windows |
+| `pc/` | Integração com o Windows, servidor local, aplicativos e controles |
+| `assets/` | Idiomas, ícones, fontes e configurações iniciais |
+| `linux/` | Sistema Linux experimental, backend, ISO e documentação |
+| `PROMPTS/` | Biblioteca de prompts e contexto de desenvolvimento |
 
 ## Licença
 
-MIT. Veja `LICENSE`.
+Este projeto é distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
