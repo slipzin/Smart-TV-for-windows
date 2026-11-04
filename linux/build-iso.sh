@@ -37,11 +37,11 @@ export CARGO_HOME="$VIBECAST_BUILD/cargo-home"
 export RUSTUP_HOME="$VIBECAST_BUILD/rustup-home"
 if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$VIBECAST_BUILD/rustup-init.sh"
-  sh "$VIBECAST_BUILD/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain 1.87.0
+  sh "$VIBECAST_BUILD/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain 1.88.0
 fi
 export PATH="$CARGO_HOME/bin:$PATH"
-rustup toolchain install 1.87.0 --profile minimal
-rustup default 1.87.0
+rustup toolchain install 1.88.0 --profile minimal
+rustup default 1.88.0
 
 python3 - "$VIBECAST_SRC" <<'PY'
 from pathlib import Path
@@ -67,6 +67,8 @@ text = text.replace(old_url, 'return "ws://127.0.0.1:8010/player";')
 player.write_text(text, encoding="utf-8")
 PY
 
+# Run the upstream YouTube receiver's protocol, Lounge, resolver and playback tests.
+CARGO_TARGET_DIR="$VIBECAST_TARGET" cargo test --release --locked --manifest-path "$VIBECAST_SRC/Cargo.toml" -p vibecast-apps-youtube
 CARGO_TARGET_DIR="$VIBECAST_TARGET" cargo build --release --locked --manifest-path "$VIBECAST_SRC/Cargo.toml" -p vibecast-cli
 install -D -m 0755 "$VIBECAST_TARGET/release/vibecast" \
   "$WORK/config/includes.chroot/usr/local/bin/vibecast"
