@@ -34,6 +34,14 @@ flatpak
 firmware-linux
 firmware-linux-nonfree
 mesa-vulkan-drivers
+# Hardware video decode for efficient local playback and cloud-game streaming.
+libva2
+libva-drm2
+libva-x11-2
+mesa-va-drivers
+intel-media-va-driver
+i965-va-driver
+vainfo
 vlc
 kodi
 uxplay
