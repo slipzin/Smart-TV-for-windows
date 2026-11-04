@@ -146,7 +146,7 @@ def set_gaming_setting(key, enabled, home=None):
     settings=gaming_settings(home); settings[key]=enabled
     path=gaming_config_path(home); path.parent.mkdir(parents=True,exist_ok=True)
     temp=path.with_suffix(".json.tmp")
-    temp.write_text(json.dumps(settings,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    temp.write_text(json.dumps(settings,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     os.chmod(temp,0o600); temp.replace(path)
     return True
 
@@ -176,7 +176,7 @@ def launch_app(apps, app_id):
     item=next((a for a in apps if a["id"]==app_id),None)
     if not item: return False
     argv=list(item.get("argv") or [])
-    if not argv or BAD.search("\\0".join(argv)): return False
+    if not argv or BAD.search("\0".join(argv)): return False
     env=os.environ.copy()
     if item.get("is_native_game"):
         settings=gaming_settings()
