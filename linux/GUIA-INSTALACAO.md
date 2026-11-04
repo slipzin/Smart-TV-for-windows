@@ -20,14 +20,14 @@ Em outras palavras: não crie uma partição chamada “ISO”. O pendrive guard
 
 ## 2. O que vem nesta edição
 
-A ISO experimental foi preparada com:
+A ISO experimental está sendo preparada com:
 
 - **Debian 13 Trixie, amd64** — destinada a computadores Intel/AMD de 64 bits.
 - **KDE Plasma** — área de trabalho e menu de programas.
 - **Smart TV OS** — interface em tela cheia, com suporte a controle, teclado e mouse.
 - **Chromium** — usado para exibir a interface Smart TV.
 - **KDE Discover** — loja gráfica de aplicativos e atualizações do Debian.
-- **Flatpak e integração do Discover com Flatpak** — suporte para catálogo Flatpak; o repositório Flathub pode ser habilitado depois da instalação.
+- **Flatpak e integração do Discover com Flatpak** — suporte para catálogo Flatpak; na compilação atual o repositório Flathub é habilitado na imagem.
 - **Kodi e VLC** — reprodução de mídia.
 - **Lutris, GameMode e MangoHud** — ferramentas relacionadas a jogos e desempenho.
 
@@ -317,7 +317,7 @@ Somente em uma máquina de teste ou depois que o instalador estiver validado:
 
 Se o Windows não aparecer no GRUB, não formate nada e não reinstale às pressas. O Windows Boot Manager pode continuar disponível pelo menu de boot do firmware. Procure suporte antes de executar comandos que alterem partições ou o bootloader.
 
-## 12. Usar a loja de aplicativos depois da instalação
+## 11. Usar a loja de aplicativos depois da instalação
 
 Depois que o Smart TV OS estiver instalado no disco e conectado à internet:
 
@@ -334,7 +334,7 @@ Os aplicativos instalados pelos repositórios Debian usam espaço na partição 
 
 ### Habilitar Flathub para encontrar mais aplicativos
 
-A ISO inclui o suporte Flatpak e o backend correspondente no Discover. Para adicionar o catálogo Flathub à conta do usuário, abra o Konsole e execute:
+A compilação atual configura o catálogo Flathub para o sistema. Abra o Discover, atualize os catálogos e procure o aplicativo. Se o catálogo não aparecer (por exemplo, se estiver usando uma ISO anterior), abra o Konsole e execute:
 
     flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
@@ -343,6 +343,34 @@ Depois, feche e abra o Discover novamente. O Flathub é uma fonte de terceiros: 
 ### Onde os aplicativos ficam instalados?
 
 Para o usuário, o detalhe técnico pode ser resumido assim: os programas e seus dados ocupam espaço no disco Linux que foi reservado na instalação. Não é necessário escolher ou criar uma partição diferente para cada aplicativo. Se o espaço Linux acabar, será necessário liberar espaço, ampliar a partição com cuidado ou mover uma biblioteca de jogos para outro volume.
+
+
+## 12. Receber mídia e conectar o celular
+
+A ISO em desenvolvimento inclui uma primeira integração de recepção AirPlay, mas os protocolos têm compatibilidades diferentes. O menu e a documentação devem identificar qual tecnologia está ativa.
+
+### iPhone, iPad e Mac — AirPlay básico
+
+1. Inicie a Smart TV OS e conecte o computador e o aparelho Apple à mesma rede local.
+2. Na área de trabalho KDE, abra o atalho **Receber AirPlay**.
+3. Uma janela do Konsole abrirá o UxPlay. Deixe a janela aberta enquanto quiser receber a transmissão.
+4. No iPhone/iPad, abra a Central de Controle e toque em **Espelhar a Tela**.
+5. Selecione **Smart-TV-OS** e digite o PIN exibido no computador.
+6. Para encerrar, pare o espelhamento no aparelho ou feche a janela do Konsole.
+
+O UxPlay é uma implementação de AirPlay Mirror e áudio AirPlay. Não é um receptor de vídeo AirPlay 2 completo. Aplicativos com conteúdo protegido podem bloquear o espelhamento; a Netflix, por exemplo, não oferece AirPlay. Para esses serviços, abra a versão web/app compatível diretamente na TV.
+
+O atalho é iniciado manualmente e protegido por PIN; ele não fica aceitando conexões automaticamente ao ligar o computador.
+
+### Android — o que já existe e o que ainda será desenvolvido
+
+O KDE Discover com o catálogo Flathub permite instalar aplicativos de recepção que usem protocolos abertos, como o **FCast Receiver**, quando disponível no catálogo. O envio depende de um aplicativo Android que ofereça suporte ao protocolo FCast; isso não transforma o Smart TV OS em Chromecast universal.
+
+O Google Cast dos aplicativos e o espelhamento completo da tela Android (Miracast/Smart View) são recursos separados. Eles ainda precisam de implementação e testes em diferentes celulares e placas Wi-Fi. Não prometa compatibilidade geral antes de validar o modelo do telefone, o adaptador Wi-Fi, o aplicativo e o serviço de streaming.
+
+### Controle da TV pelo celular
+
+O controle remoto por QR code/PIN, com direcional, OK, voltar, início, volume e teclado para busca, está no plano de desenvolvimento. Não é uma função entregue nesta ISO experimental. No momento, use o controle USB/Bluetooth, teclado ou mouse.
 
 ## 13. Solução de problemas
 
