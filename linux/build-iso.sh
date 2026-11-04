@@ -177,7 +177,9 @@ cat > "$WORK/config/hooks/live/0550-steam-installer.hook.chroot" <<'EOF'
 set -eu
 dpkg --add-architecture i386
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends steam-installer
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  steam-installer steam-devices \
+  libglx-mesa0:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386
 rm -rf /var/lib/apt/lists/*
 EOF
 chmod 0755 "$WORK/config/hooks/live/0550-steam-installer.hook.chroot"
@@ -200,6 +202,12 @@ konsole
 dolphin
 network-manager
 avahi-daemon
+pipewire-audio
+pipewire-pulse
+wireplumber
+udisks2
+xdg-desktop-portal
+xdg-desktop-portal-kde
 bluez
 blueman
 sudo
