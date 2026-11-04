@@ -405,7 +405,7 @@
     var buttons = $('buttons');
     buttons.innerHTML = '';
     // Linux separates a light TV/streaming profile from local console gaming.
-    var gameAction = TV.platform === 'linux' && experienceProfile === 'tv' ? 'Play from PC' : 'Games';
+    var gameAction = TV.platform === 'linux' && experienceProfile === 'tv' ? 'Cloud gaming' : 'Games';
     var defs = TV.name === 'pc' ? [['gamepad', tr(gameAction)], ['apps', tr('All Apps')], ['settings', tr('light|Settings')]]
         : [['live_tv', tr('light|Live TV')], ['hdmi', tr('HDMI Inputs')], ['settings', tr('light|Settings')]];
     for (var b = 0; b < 3; b++) {
@@ -717,16 +717,17 @@
   function renderApps(viewMode) {
     var sheet = $('apps');
     appsViewMode = viewMode || 'all';
-    if (appsViewMode === 'local') appsViewItems = apps.filter(function (app) { return !!app.is_game && !app.is_streaming_client; });
+    if (appsViewMode === 'local') appsViewItems = apps.filter(function (app) { return !!app.is_game && !app.is_cloud_game && !app.is_streaming_client; });
+    else if (appsViewMode === 'cloud') appsViewItems = apps.filter(function (app) { return !!app.is_cloud_game; });
     else if (appsViewMode === 'streaming') appsViewItems = apps.filter(function (app) { return !!app.is_streaming_client; });
     else appsViewItems = others.slice();
-    sheet.firstChild.textContent = tr(appsViewMode === 'local' ? 'Games' : appsViewMode === 'streaming' ? 'Play from PC' : 'All Apps');
+    sheet.firstChild.textContent = tr(appsViewMode === 'local' ? 'Games' : appsViewMode === 'cloud' ? 'Cloud gaming' : appsViewMode === 'streaming' ? 'Other PC on network' : 'All Apps');
     var grid = sheet.lastChild;
     grid.innerHTML = '';
     var empty = sheet.querySelector('.empty');
     if (empty) sheet.removeChild(empty);
     if (appsViewMode !== 'all' && !appsViewItems.length) {
-      var message = appsViewMode === 'streaming' ? 'Install Moonlight or Steam Link from Discover to play games from another PC.' : 'No local games found. Open Install gaming extras in All Apps, then install games in Steam or another launcher.';
+      var message = appsViewMode === 'cloud' ? 'Cloud gaming shortcuts are not installed. Check the TV profile installation.' : appsViewMode === 'streaming' ? 'Install Moonlight or Steam Link from Discover only if another PC is available on your network.' : 'No local games found. Open Install gaming extras in All Apps, then install games in Steam or another launcher.';
       empty = el('div', 'empty', sheet, tr(message));
     }
     for (var i = 0; i < appsViewItems.length; i++) {
@@ -1375,7 +1376,7 @@
     switch (st.zone) {
       case Z.TOP:
         if (st.top < 3) return;
-        if (st.top === 3 && TV.name === 'pc' && TV.platform === 'linux') openApps(experienceProfile === 'console' ? 'local' : 'streaming');
+        if (st.top === 3 && TV.name === 'pc' && TV.platform === 'linux') openApps(experienceProfile === 'console' ? 'local' : 'cloud');
         else if (st.top === 3 && TV.name === 'pc') launcher('steam', tr('Games'))();
         else if (st.top === 3) { var live = liveTV(); if (live) launcher(live.id, tr('Live TV'))(); }
         else if (st.top === 4) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
