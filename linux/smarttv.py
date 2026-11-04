@@ -38,6 +38,7 @@ KNOWN = [
  ("lutris",("lutris",),"#F0A000",""),
  ("bottles",("bottles",),"#7B61A8",""),
  ("moonlight",("moonlight",),"#5B7CFA",""),
+ ("steamlink",("steam link","steamlink"),"#171A21",""),
  ("retroarch",("retroarch",),"#D94B27",""),
  ("dolphin",("dolphin emulator",),"#1E88E5",""),
  ("pcsx2",("pcsx2",),"#1565C0",""),
@@ -48,7 +49,7 @@ KNOWN = [
 ]
 
 GAME_LAUNCHER_IDS = {
-    "steam", "lutris", "heroic", "epic", "battlenet", "bottles", "moonlight",
+    "steam", "lutris", "heroic", "epic", "battlenet", "bottles", "moonlight", "steamlink",
     "retroarch", "dolphin", "pcsx2", "ppsspp", "rpcs3", "scummvm", "dosbox",
 }
 
@@ -81,8 +82,10 @@ def parse_desktop_file(path):
     categories={value.strip().casefold() for value in e.get("Categories","").split(";") if value.strip()}
     is_launcher = app_id in GAME_LAUNCHER_IDS
     is_game = "game" in categories or is_launcher
+    is_streaming_client = app_id in ("moonlight","steamlink")
     return {"id":app_id,"title":name,"icon":icon,"color":color,
-            "is_game":is_game,"is_native_game":("game" in categories and not is_launcher),
+            "is_game":is_game,"is_streaming_client":is_streaming_client,
+            "is_native_game":("game" in categories and not is_launcher),
             "argv":argv,"desktop_file":str(path)}
 
 def desktop_dirs(home):
@@ -134,23 +137,35 @@ def gaming_config_path(home=None):
 
 
 def gaming_settings(home=None):
-    defaults={"gamemode":True,"mangohud":False}
+    defaults={"profile":"tv","gamemode":True,"mangohud":False}
     try:
         saved=json.loads(gaming_config_path(home).read_text(encoding="utf-8"))
         if isinstance(saved,dict):
-            for key in defaults:
+            if saved.get("profile") in ("tv","console"): defaults["profile"]=saved["profile"]
+            for key in ("gamemode","mangohud"):
                 if isinstance(saved.get(key),bool): defaults[key]=saved[key]
     except (OSError,ValueError,TypeError): pass
     return defaults
 
 
-def set_gaming_setting(key, enabled, home=None):
-    if key not in ("gamemode","mangohud") or not isinstance(enabled,bool): return False
-    settings=gaming_settings(home); settings[key]=enabled
+def save_gaming_settings(settings, home=None):
     path=gaming_config_path(home); path.parent.mkdir(parents=True,exist_ok=True)
     temp=path.with_suffix(".json.tmp")
     temp.write_text(json.dumps(settings,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     os.chmod(temp,0o600); temp.replace(path)
+
+
+def set_gaming_setting(key, enabled, home=None):
+    if key not in ("gamemode","mangohud") or not isinstance(enabled,bool): return False
+    settings=gaming_settings(home); settings[key]=enabled
+    save_gaming_settings(settings,home)
+    return True
+
+
+def set_experience_profile(profile, home=None):
+    if profile not in ("tv","console"): return False
+    settings=gaming_settings(home); settings["profile"]=profile
+    save_gaming_settings(settings,home)
     return True
 
 
@@ -252,12 +267,17 @@ class Handler(BaseHTTPRequestHandler):
         u=urllib.parse.urlsplit(self.path); path=urllib.parse.unquote(u.path); q=urllib.parse.parse_qs(u.query,keep_blank_values=True)
         if path=="/api/apps":
             self.server.apps=discover_apps()
-            self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game")} for a in self.server.apps]})
+            self.js({"apps":[{k:a.get(k) for k in ("id","title","icon","color","is_game","is_streaming_client")} for a in self.server.apps]})
         elif path=="/api/gaming":
             key=q.get("key",[""])[0]; raw=q.get("enabled",[""])[0]
             if key:
                 if raw not in ("0","1") or not set_gaming_setting(key,raw=="1"):
                     self.js({"ok":False,"error":"invalid gaming setting"},400); return
+            self.js(gaming_info())
+        elif path=="/api/profile":
+            profile=q.get("mode",[""])[0]
+            if profile and not set_experience_profile(profile):
+                self.js({"ok":False,"error":"invalid profile"},400); return
             self.js(gaming_info())
         elif path=="/api/open": self.js({"ok":launch_app(self.server.apps,q.get("id",[""])[0])})
         elif path=="/api/settings": self.js({"ok":self.open_settings()})
