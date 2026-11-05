@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from smarttv_installer import inspect_system
+from installer.smarttv_installer import inspect_system
 
 
 LSBLK = {
@@ -20,9 +20,9 @@ LSBLK = {
 
 
 class InstallerPreflightTests(unittest.TestCase):
-    @patch("smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
-    @patch("smarttv_installer.Path.exists", return_value=True)
-    @patch("smarttv_installer.subprocess.run")
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=True)
+    @patch("installer.smarttv_installer.subprocess.run")
     def test_detects_uefi_disk_and_efi_without_enabling_install(self, run, exists, which):
         run.side_effect = [
             type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": ""})(),
@@ -36,9 +36,9 @@ class InstallerPreflightTests(unittest.TestCase):
         self.assertFalse(report["installation_allowed"])
         self.assertEqual(report["mode"], "read-only")
 
-    @patch("smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
-    @patch("smarttv_installer.Path.exists", return_value=False)
-    @patch("smarttv_installer.subprocess.run")
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=False)
+    @patch("installer.smarttv_installer.subprocess.run")
     def test_non_uefi_is_warning_and_install_stays_blocked(self, run, exists, which):
         run.return_value = type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": ""})()
         report = inspect_system()
