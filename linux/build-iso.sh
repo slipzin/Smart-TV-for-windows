@@ -112,6 +112,7 @@ Terminal=false
 Categories=System;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop"
+install -D -m 0644 "$ROOT/linux/INSTALACAO-EM-DESENVOLVIMENTO.md" "$WORK/config/includes.chroot/usr/share/doc/smarttv/INSTALACAO-EM-DESENVOLVIMENTO.md"
 
 cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop" <<'EOF'
 [Desktop Entry]
