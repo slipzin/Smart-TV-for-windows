@@ -50,8 +50,6 @@ gstreamer1.0-libav
 gstreamer1.0-plugins-good
 plasma-discover
 plasma-discover-backend-flatpak
-calamares
-calamares-settings-debian
 os-prober
 ntfs-3g
 parted
