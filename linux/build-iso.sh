@@ -125,32 +125,8 @@ Categories=Network;AudioVideo;
 EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop"
 
-install -D -m 0755 "$ROOT/linux/gaming/install-extras.sh" \
-  "$WORK/config/includes.chroot/usr/local/bin/smart-tv-install-gaming"
-install -D -m 0644 "$ROOT/linux/gaming/README.md" \
-  "$WORK/config/includes.chroot/usr/share/doc/smarttv-gaming/README.md"
-for manifest in console-apt-packages.txt console-flatpaks.txt console-backports-packages.txt; do
-  install -D -m 0644 "$ROOT/linux/profiles/$manifest" \
-    "$WORK/config/includes.chroot/usr/share/smarttv-gaming/$manifest"
-done
-install -D -m 0755 "$ROOT/linux/cloud-gaming/launch-cloud-game.sh" \
-  "$WORK/config/includes.chroot/usr/local/bin/smart-tv-cloud-game"
-
-for destination in \
-  "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop" \
-  "$WORK/config/includes.chroot/usr/share/applications/smart-tv-install-gaming.desktop"; do
-cat > "$destination" <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=Instalar extras de jogos
-Comment=Instala Steam Input, Wine, Heroic, emuladores e ferramentas opcionais
-Exec=konsole -e pkexec /usr/local/bin/smart-tv-install-gaming
-Icon=applications-games
-Terminal=false
-Categories=System;Utility;
-EOF
-done
-chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar extras de jogos.desktop"
+# The TV edition intentionally excludes local game runtimes and emulators.
+# Cloud gaming launchers remain available below.
 
 # Cloud gaming shortcuts live in the light TV profile and open dedicated
 # Chromium app windows. They do not install a game runtime or require a host PC.
