@@ -114,6 +114,10 @@ EOF
 chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop"
 install -D -m 0644 "$ROOT/linux/INSTALACAO-EM-DESENVOLVIMENTO.md" "$WORK/config/includes.chroot/usr/share/doc/smarttv/INSTALACAO-EM-DESENVOLVIMENTO.md"
 
+# Install the read-only preflight utility; disk writes remain disabled.
+install -D -m 0755 "$ROOT/linux/installer/smarttv_installer.py" "$WORK/config/includes.chroot/usr/local/bin/smarttv-installer"
+install -D -m 0644 "$ROOT/linux/installer/README.md" "$WORK/config/includes.chroot/usr/share/doc/smarttv/INSTALADOR-PRE-FLIGHT.md"
+
 cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
