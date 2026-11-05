@@ -1,6 +1,7 @@
 # Smart TV OS — Modo TV (imagem base)
 # Esta lista é usada diretamente por live-build.
-# Manter aqui apenas desktop, mídia, rede, controles e suporte a aplicativos.
+# Edição TV: desktop, mídia, rede, controles e suporte a aplicativos.
+# Jogos locais, Wine/Proton e emuladores pertencem apenas à edição Console.
 
 live-boot
 live-config
