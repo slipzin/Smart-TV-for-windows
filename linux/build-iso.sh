@@ -21,7 +21,7 @@ mkdir -p "$WORK/config/package-lists" \
   "$WORK/config/includes.chroot/usr/share/applications" \
   "$WORK/config/includes.chroot/etc/xdg/autostart" \
   "$WORK/config/includes.chroot/etc/skel/.config/autostart" \
-  "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d" "$WORK/config/hooks/live"
+  "$WORK/config/includes.chroot/etc/skel/Desktop" "$WORK/config/includes.chroot/etc/default/grub.d" "$WORK/config/includes.chroot/etc/plymouth" "$WORK/config/includes.chroot/usr/share/plymouth/themes/smarttv" "$WORK/config/hooks/live"
 cd "$WORK"
 
 # Build a pinned VibeCast receiver from source. The player name and public
@@ -202,6 +202,50 @@ echo "GRUB_DISABLE_OS_PROBER=false" > "$WORK/config/includes.chroot/etc/default/
 install -D -m 0644 "$ROOT/linux/profiles/tv-packages.txt" \
   "$WORK/config/package-lists/smarttv.list.chroot"
 
+# Give the live image its own product identity during boot. Plymouth handles
+# the graphical splash; GRUB is branded and kept quiet for normal startup.
+cat > "$WORK/config/package-lists/smarttv-boot.list.chroot" <<'EOF'
+plymouth
+plymouth-themes
+EOF
+
+cat > "$WORK/config/includes.chroot/etc/default/grub.d/99-smarttv-os.cfg" <<'EOF'
+GRUB_DISTRIBUTOR="Smart TV OS"
+GRUB_TIMEOUT=2
+GRUB_TIMEOUT_STYLE=hidden
+GRUB_DISABLE_RECOVERY=true
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3"
+EOF
+
+cat > "$WORK/config/includes.chroot/usr/share/plymouth/themes/smarttv/smarttv.plymouth" <<'EOF'
+[Plymouth Theme]
+Name=Smart TV OS
+Description=Smart TV OS startup splash
+ModuleName=two-step
+
+[two-step]
+ImageDir=/usr/share/plymouth/themes/spinner
+HorizontalAlignment=.5
+VerticalAlignment=.5
+HorizontalAlignment=0.5
+VerticalAlignment=0.5
+WatermarkHorizontalAlignment=.5
+WatermarkVerticalAlignment=.9
+Transition=none
+EOF
+
+cat > "$WORK/config/hooks/live/0600-smarttv-boot-branding.hook.chroot" <<'EOF'
+#!/bin/sh
+set -eu
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+  plymouth-set-default-theme smarttv || true
+fi
+if command -v update-initramfs >/dev/null 2>&1; then
+  update-initramfs -u -k all
+fi
+EOF
+chmod 0755 "$WORK/config/hooks/live/0600-smarttv-boot-branding.hook.chroot"
+
 lb config \
   --distribution "$DIST" \
   --architectures "$ARCH" \
@@ -209,7 +253,7 @@ lb config \
   --debian-installer none \
   --archive-areas "main contrib non-free non-free-firmware" \
   --apt-recommends true \
-  --bootappend-live "boot=live components locales=pt_BR.UTF-8 keyboard-layouts=br" \
+  --bootappend-live "boot=live components quiet splash loglevel=3 locales=pt_BR.UTF-8 keyboard-layouts=br" \
   --memtest none
 
 lb build
