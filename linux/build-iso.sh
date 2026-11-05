@@ -128,6 +128,12 @@ chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.deskto
 
 # The TV edition intentionally excludes local game runtimes and emulators.
 # Cloud gaming launchers remain available below.
+# Preserve the separate Console manifests as documentation/build inputs only;
+# they are not installed as packages in this TV image.
+for manifest in console-apt-packages.txt console-flatpaks.txt console-backports-packages.txt; do
+  install -D -m 0644 "$ROOT/linux/profiles/$manifest" \
+    "$WORK/config/includes.chroot/usr/share/doc/smarttv-console/$manifest"
+done
 
 # Cloud gaming shortcuts live in the light TV profile and open dedicated
 # Chromium app windows. They do not install a game runtime or require a host PC.
