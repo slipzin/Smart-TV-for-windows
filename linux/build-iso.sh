@@ -101,17 +101,17 @@ X-GNOME-Autostart-enabled=true
 EOF
 done
 
-cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar Smart TV OS.desktop" <<'EOF'
+cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Instalar Smart TV OS
-Comment=Open the Calamares installer
-Exec=pkexec calamares
-Icon=calamares
+Name=Instalador Smart TV OS (em desenvolvimento)
+Comment=Consulte o estado e as instruções antes da instalação permanente
+Exec=xdg-open /usr/share/doc/smarttv/INSTALACAO-EM-DESENVOLVIMENTO.md
+Icon=dialog-information
 Terminal=false
 Categories=System;
 EOF
-chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalar Smart TV OS.desktop"
+chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop"
 
 cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop" <<'EOF'
 [Desktop Entry]
