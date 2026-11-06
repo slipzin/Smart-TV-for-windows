@@ -21,8 +21,8 @@ Uma central de entretenimento que funciona sobre o Windows, sem substituir o sis
 A evolução do projeto para um sistema independente, baseado em Debian 13, pensado para transformar um PC em uma plataforma dedicada ao entretenimento da sala.
 
 - **Interface de TV em um sistema próprio:** ambiente Linux com KDE Plasma, inicialização Live por pendrive e loja KDE Discover.
-- **Do streaming aos jogos:** perfil Modo TV para a experiência de entretenimento e perfil Modo Console para jogos locais compatíveis.
-- **Ecossistema aberto:** suporte a aplicativos Linux e Flatpak, com integração gamer planejada em torno de Steam, Proton, Heroic e emuladores.
+- **ISO TV-only:** a imagem atual prioriza streaming, mídia, controle remoto e cloud gaming. Ela não instala runtimes de jogos locais nem emuladores.
+- **Perfis separados:** os manifestos do Modo Console são preservados no repositório para uma edição futura, mas não entram na ISO TV atual.
 - **Recursos de transmissão em desenvolvimento:** pesquisa e implementação de recursos como AirPlay, Google Cast, Miracast e controle pelo celular, respeitando as limitações reais de cada tecnologia.
 
 > **Estado do projeto:** a edição Windows e a edição Linux têm escopos diferentes. O Smart TV OS ainda é experimental; compatibilidade de hardware, instalação permanente em dual boot e alguns recursos de transmissão precisam de validação. Consulte o guia Linux antes de instalar e prefira testar a ISO em modo Live.
@@ -47,21 +47,40 @@ A evolução do projeto para um sistema independente, baseado em Debian 13, pens
 
 ## Smart TV OS — Linux
 
-A edição Linux está sendo construída como uma alternativa independente para quem deseja dedicar um computador à experiência de TV. A ISO Live permite iniciar o sistema por um pendrive e avaliar o ambiente antes de qualquer instalação no disco.
+A edição Linux é baseada em Debian 13 e está em fase experimental. A ISO atual é
+uma mídia Live TV-only: inicia pelo pendrive para avaliar a interface, streaming,
+cloud gaming e compatibilidade básica de hardware. Ela ainda não instala o
+sistema no SSD/HD interno.
 
-**Atenção:** a ISO é experimental. O instalador Calamares utiliza uma configuração genérica e o processo de instalação permanente ao lado do Windows ainda não foi validado em hardware real. No momento, recomendamos testar pelo pendrive em modo Live e não instalar no disco principal até que o procedimento esteja devidamente validado.
+A mídia USB não é o destino final. O objetivo é uma instalação permanente em
+dual boot com Windows 10/11, usando somente espaço não alocado, sem formatar o
+disco inteiro e sem alterar partições existentes do Windows.
 
-- [Guia de instalação, criação do pendrive, particionamento, loja e transmissão](linux/GUIA-INSTALACAO.md)
+**Instalador:** a ISO inclui um assistente gráfico em português para diagnóstico
+e planejamento. Ele lê UEFI, discos, possíveis instalações Windows, EFI e
+regiões livres; permite revisar um plano simulado, mas não particiona, formata,
+copia o sistema nem altera o GRUB. A instalação permanente continua bloqueada
+até que a geometria, o estado do BitLocker, a preservação da EFI e a recuperação
+do Windows estejam implementados e testados.
+
+- [Guia de instalação e estado atual](linux/INSTALACAO-EM-DESENVOLVIMENTO.md)
+- [Documentação técnica do assistente](linux/installer/README.md)
 - [Como baixar, gerar e publicar a ISO](linux/COMO-PUBLICAR-ISO.md)
 - [Visão do produto e experiência Smart TV](linux/VISAO-TV-EXPERIENCIA.md)
-- [Jogos no Linux: Steam, Proton, controles, Heroic e emuladores](linux/gaming/README.md)
 - [Transmissão entre aplicativos e receptores — destino TV Sala](linux/CAST-APPS-E-RECEPTORES.md)
 
-### Sobre transmissão e dual boot
+### Streaming, Cast, AirPlay e dual boot
 
-A ISO experimental inclui UxPlay para espelhamento AirPlay básico, iniciado manualmente e protegido por PIN. Google Cast universal, receptor Miracast, controle remoto próprio pelo celular e transmissão integrada dentro dos aplicativos ainda estão em desenvolvimento ou sem compatibilidade confirmada. O suporte varia conforme o aplicativo, o dispositivo e o protocolo; não há garantia de funcionamento universal.
+A edição TV inclui atalhos para serviços de streaming e cloud gaming. UxPlay
+oferece um receptor AirPlay básico, e o receptor Cast TV Sala ainda depende de
+configuração e validação por aplicativo/dispositivo. Não há garantia de
+compatibilidade universal; Netflix e outros serviços podem restringir
+dispositivos receptores não certificados.
 
-Para um futuro dual boot, o espaço destinado ao Linux deve ser liberado no Windows como **Não alocado**. O Linux deverá ocupar uma partição própria. Não formate a partição EFI nem as partições existentes do Windows. Uma partição separada para jogos é opcional. Consulte o [guia completo](linux/GUIA-INSTALACAO.md) antes de alterar o disco.
+Não instale esta versão no disco principal. Para o futuro dual boot, o espaço
+deverá ser liberado pelo Gerenciamento de Disco do Windows como **Não alocado**.
+A partição EFI existente nunca deverá ser formatada. A instalação só será
+liberada após testes de segurança e recuperação em VM e hardware compatível.
 
 ## Biblioteca de prompts e desenvolvimento com IA
 

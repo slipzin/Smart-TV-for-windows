@@ -222,7 +222,6 @@ class InstallerWindow(QMainWindow):
             "Confirmo que verifiquei o BitLocker no Windows, suspendi/desativei a proteção e guardei a chave de recuperação."
         )
         self.bitlocker_ack.setVisible(False)
-        self.bitlocker_ack.setWordWrap(True)
         layout.addWidget(self.bitlocker_ack)
 
         self.validation_label = QLabel(
