@@ -101,21 +101,29 @@ X-GNOME-Autostart-enabled=true
 EOF
 done
 
-cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop" <<'EOF'
+cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Instalador Smart TV OS (em desenvolvimento)
-Comment=Consulte o estado e as instruções antes da instalação permanente
-Exec=xdg-open /usr/share/doc/smarttv/INSTALACAO-EM-DESENVOLVIMENTO.md
-Icon=dialog-information
+Name=Instalar Smart TV OS
+Comment=Assistente gráfico de diagnóstico e planejamento seguro de dual boot
+Exec=/usr/local/bin/smarttv-installer-gui
+Icon=system-software-install
 Terminal=false
 Categories=System;
 EOF
-chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS - em desenvolvimento.desktop"
+chmod 0755 "$WORK/config/includes.chroot/etc/skel/Desktop/Instalador Smart TV OS.desktop"
 install -D -m 0644 "$ROOT/linux/INSTALACAO-EM-DESENVOLVIMENTO.md" "$WORK/config/includes.chroot/usr/share/doc/smarttv/INSTALACAO-EM-DESENVOLVIMENTO.md"
 
-# Install the read-only preflight utility; disk writes remain disabled.
+# Install the read-only CLI and the Portuguese graphical planning wizard.
 install -D -m 0755 "$ROOT/linux/installer/smarttv_installer.py" "$WORK/config/includes.chroot/usr/local/bin/smarttv-installer"
+install -d "$WORK/config/includes.chroot/usr/local/lib/smarttv/installer"
+cp -a "$ROOT/linux/installer/." "$WORK/config/includes.chroot/usr/local/lib/smarttv/installer/"
+cat > "$WORK/config/includes.chroot/usr/local/bin/smarttv-installer-gui" <<'EOF'
+#!/usr/bin/env bash
+export PYTHONPATH="/usr/local/lib/smarttv${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m installer.gui "$@"
+EOF
+chmod 0755 "$WORK/config/includes.chroot/usr/local/bin/smarttv-installer-gui"
 install -D -m 0644 "$ROOT/linux/installer/README.md" "$WORK/config/includes.chroot/usr/share/doc/smarttv/INSTALADOR-PRE-FLIGHT.md"
 
 cat > "$WORK/config/includes.chroot/etc/skel/Desktop/Receber AirPlay.desktop" <<'EOF'

@@ -1,9 +1,16 @@
-# Instalação permanente — em desenvolvimento
+# Instalação permanente — assistente em desenvolvimento
 
-A ISO atual é destinada a inicialização Live e testes da interface. A fase 1 do instalador personalizado foi iniciada: existe uma ferramenta de pré-verificação somente leitura para inventariar discos, modo UEFI, possíveis instalações Windows e partições EFI. Ainda não existe assistente gráfico nem mecanismo de particionamento/instalação.
+A ISO Live agora inclui um assistente gráfico em português para diagnóstico e
+planejamento. Ele permite consultar discos, UEFI, Windows, EFI e regiões livres
+e revisar um plano simulado de dual boot.
 
-**Não execute particionamento ou instalação no disco que contém o Windows.** A configuração genérica do Calamares não oferece, nesta versão, as garantias exigidas pelo Smart TV OS para preservar Windows, EFI e partições de dados.
+**Ainda não existe instalação permanente nesta versão.** O assistente não cria
+partições, não formata, não monta sistemas de arquivos, não copia o sistema e
+não altera entradas de boot. A mídia USB continua sendo apenas um ambiente Live
+de diagnóstico e teste.
 
-O assistente final deverá detectar UEFI/GPT, identificar Windows e a partição EFI existente, permitir escolher espaço não alocado ou outro disco, mostrar uma revisão completa das alterações e bloquear qualquer operação ambígua ou destrutiva. A partição EFI existente nunca deverá ser formatada.
-
-Até que esses requisitos sejam implementados e testados em máquina virtual com snapshots e em hardware compatível, use somente o modo Live pelo pendrive.
+Não execute instalação no disco que contém o Windows. A instalação futura só
+poderá ser liberada após confirmação confiável do Windows 10/11, geometria
+exata do espaço não alocado, estado do BitLocker e partição EFI existente,
+além de revisão explícita e testes de recuperação. A EFI não deverá ser
+formatada em nenhuma hipótese.

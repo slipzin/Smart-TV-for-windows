@@ -13,7 +13,8 @@ LSBLK = {
             {"name": "nvme0n1p1", "path": "/dev/nvme0n1p1", "type": "part",
              "size": 300000000, "fstype": "vfat", "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"},
             {"name": "nvme0n1p3", "path": "/dev/nvme0n1p3", "type": "part",
-             "size": 400000000000, "fstype": "ntfs", "parttype": "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"}
+             "size": 400000000000, "fstype": "ntfs", "label": "Windows",
+             "parttype": "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"}
         ]
     }]
 }
@@ -32,7 +33,9 @@ class InstallerPreflightTests(unittest.TestCase):
         self.assertTrue(report["uefi"])
         self.assertEqual(len(report["disks"]), 1)
         self.assertEqual(report["efi_partitions"][0]["path"], "/dev/nvme0n1p1")
+        self.assertEqual(report["efi_partitions"][0]["disk_path"], "/dev/nvme0n1")
         self.assertTrue(report["windows_detected"])
+        self.assertTrue(report["windows_candidates"])
         self.assertFalse(report["installation_allowed"])
         self.assertEqual(report["mode"], "read-only")
 
