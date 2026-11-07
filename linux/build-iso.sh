@@ -247,6 +247,7 @@ lb config \
   --binary-images iso-hybrid \
   --debian-installer none \
   --archive-areas "main contrib non-free non-free-firmware" \
+  --iso-volume "SMARTTV_TV" \
   --apt-recommends true \
   --bootappend-live "boot=live components quiet splash loglevel=3 locales=pt_BR.UTF-8 keyboard-layouts=br" \
   --memtest none
