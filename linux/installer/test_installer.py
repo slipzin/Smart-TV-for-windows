@@ -78,5 +78,19 @@ class InstallerPreflightTests(unittest.TestCase):
         self.assertFalse(report["windows_installations"])
 
 
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=True)
+    @patch("installer.smarttv_installer.subprocess.run")
+    def test_ntfs_recovery_partition_is_not_accepted_as_windows_volume(self, run, exists, which):
+        recovery = json.loads(json.dumps(LSBLK))
+        recovery["blockdevices"][0]["children"][1]["parttype"] = "de94bba4-06d1-4d40-a16a-bfd50179d6ac"
+        run.side_effect = [
+            type("Result", (), {"stdout": json.dumps(recovery), "stderr": "", "returncode": 0})(),
+            type("Result", (), {"stdout": "/dev/nvme0n1p3:Windows Boot Manager:Windows:chain\n", "stderr": "", "returncode": 0})(),
+        ]
+        report = inspect_system()
+        self.assertFalse(report["windows_detected"])
+        self.assertFalse(report["windows_installations"])
+        self.assertFalse(report["windows_volume_candidates"])
 if __name__ == "__main__":
     unittest.main()
