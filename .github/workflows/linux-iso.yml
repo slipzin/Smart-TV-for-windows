@@ -107,6 +107,14 @@ jobs:
                 exit 1
               fi
               sha256sum "${ARCHIVE_FILES[@]}" > "$ARCHIVE.sha256"
+              # Verify the source ISO and every 7z volume before upload.
+              sha256sum -c "$ISO.sha256"
+              sha256sum -c "$ARCHIVE.sha256"
+              "$SEVENZIP" t -y "${ARCHIVE_FILES[0]}"
+              echo "ISO SHA-256:"
+              cat "$ISO.sha256"
+              echo "7z volume SHA-256:"
+              cat "$ARCHIVE.sha256"
               ls -lh "$ISO" "$ISO.sha256" "$ARCHIVE.sha256" "${ARCHIVE_FILES[@]}"
 
               # The build runs as root inside Docker. Change permissions before
@@ -121,6 +129,10 @@ jobs:
           split -b 400m -d -a 3 out/SmartTV-OS-live-trixie-amd64.iso out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-
           cp out/SmartTV-OS-live-trixie-amd64.iso.sha256 out/iso-parts/
           sha256sum out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-* > out/iso-parts/PARTS.sha256
+          EXPECTED_ISO_SHA="$(awk '{print $1}' out/SmartTV-OS-live-trixie-amd64.iso.sha256)"
+          REASSEMBLED_ISO_SHA="$(cat out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-* | sha256sum | awk '{print $1}')"
+          test "$EXPECTED_ISO_SHA" = "$REASSEMBLED_ISO_SHA"
+          echo "Reassembled ISO SHA-256 verified: $REASSEMBLED_ISO_SHA"
 
       - name: Upload ISO parts (400 MiB each)
         uses: actions/upload-artifact@v4
