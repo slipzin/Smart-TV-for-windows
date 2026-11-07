@@ -50,6 +50,15 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("A revisão final do usuário ainda não foi confirmada.")
     if not plan.windows_confirmed:
         raise UnsafeInstallPlan("Windows 10/11 não foi confirmado com confiança; instalação bloqueada.")
+    confirmed_windows_disks = {
+        item.get("disk_path")
+        for item in inventory.get("windows_installations", [])
+        if item.get("disk_path")
+    }
+    if plan.disk_path not in confirmed_windows_disks:
+        raise UnsafeInstallPlan(
+            "O Windows confirmado não foi associado ao disco selecionado; dual boot neste disco está bloqueado."
+        )
     if plan.windows_present and not plan.bitlocker_cleared_by_user:
         raise UnsafeInstallPlan(
             "BitLocker não foi confirmado como suspenso/desativado. Tenha também a chave de recuperação."
