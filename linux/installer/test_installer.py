@@ -26,8 +26,8 @@ class InstallerPreflightTests(unittest.TestCase):
     @patch("installer.smarttv_installer.subprocess.run")
     def test_detects_uefi_disk_and_efi_without_enabling_install(self, run, exists, which):
         run.side_effect = [
-            type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": ""})(),
-            type("Result", (), {"stdout": "/dev/nvme0n1p3:Windows 11:Windows:chain\n", "stderr": ""})()
+            type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": "", "returncode": 0})(),
+            type("Result", (), {"stdout": "/dev/nvme0n1p3:Windows 11:Windows:chain\n", "stderr": "", "returncode": 0})(),
         ]
         report = inspect_system()
         self.assertTrue(report["uefi"])
@@ -36,6 +36,8 @@ class InstallerPreflightTests(unittest.TestCase):
         self.assertEqual(report["efi_partitions"][0]["disk_path"], "/dev/nvme0n1")
         self.assertTrue(report["windows_detected"])
         self.assertTrue(report["windows_candidates"])
+        self.assertEqual(report["windows_disk_paths"], ["/dev/nvme0n1"])
+        self.assertEqual(report["windows_installations"][0]["disk_path"], "/dev/nvme0n1")
         self.assertFalse(report["installation_allowed"])
         self.assertEqual(report["mode"], "read-only")
 
@@ -43,11 +45,37 @@ class InstallerPreflightTests(unittest.TestCase):
     @patch("installer.smarttv_installer.Path.exists", return_value=False)
     @patch("installer.smarttv_installer.subprocess.run")
     def test_non_uefi_is_warning_and_install_stays_blocked(self, run, exists, which):
-        run.return_value = type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": ""})()
+        run.return_value = type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": "", "returncode": 0})()
         report = inspect_system()
         self.assertFalse(report["uefi"])
         self.assertFalse(report["installation_allowed"])
         self.assertTrue(any("UEFI" in item for item in report["warnings"]))
+
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=True)
+    @patch("installer.smarttv_installer.subprocess.run")
+    def test_unmatched_os_prober_path_is_not_accepted_as_windows(self, run, exists, which):
+        run.side_effect = [
+            type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": "", "returncode": 0})(),
+            type("Result", (), {"stdout": "/dev/sdb3:Windows 11:Windows:chain\n", "stderr": "", "returncode": 0})(),
+        ]
+        report = inspect_system()
+        self.assertFalse(report["windows_detected"])
+        self.assertFalse(report["windows_installations"])
+        self.assertTrue(report["windows_unmapped_entries"])
+        self.assertTrue(any("não puderam ser associadas" in item for item in report["warnings"]))
+
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=True)
+    @patch("installer.smarttv_installer.subprocess.run")
+    def test_failed_os_prober_does_not_confirm_windows_from_partial_stdout(self, run, exists, which):
+        run.side_effect = [
+            type("Result", (), {"stdout": json.dumps(LSBLK), "stderr": "", "returncode": 0})(),
+            type("Result", (), {"stdout": "/dev/nvme0n1p3:Windows 11:Windows:chain\n", "stderr": "probe failed", "returncode": 1})(),
+        ]
+        report = inspect_system()
+        self.assertFalse(report["windows_detected"])
+        self.assertFalse(report["windows_installations"])
 
 
 if __name__ == "__main__":
