@@ -60,6 +60,7 @@ class InstallerWindow(QMainWindow):
         self.inventory = {}
         self.free_regions = []
         self.windows_present = False
+        self.windows_disk_paths = set()
         self.bitlocker_detected = False
         self.validation_label = None
 
@@ -250,6 +251,7 @@ class InstallerWindow(QMainWindow):
         self.windows_present = bool(
             self.inventory.get("windows_detected") or self.inventory.get("windows_candidates")
         )
+        self.windows_disk_paths = set(self.inventory.get("windows_disk_paths", []))
         self.bitlocker_detected = bool(self.inventory.get("bitlocker_detected"))
         self.check_summary.setText(
             "Inicialização UEFI: {uefi}\n"
@@ -257,12 +259,17 @@ class InstallerWindow(QMainWindow):
             "Partições NTFS candidatas: {candidates}\n"
             "Partições EFI confirmadas: {efi}\n"
             "Discos detectados: {disks}\n"
+            "Discos com Windows confirmado: {windows_disks}\n"
             "BitLocker detectado: {bitlocker}".format(
                 uefi="SIM" if self.inventory.get("uefi") else "NÃO",
-                windows="SIM" if self.inventory.get("windows_detected") else "NÃO",
+                windows=(
+                    "SIM (neste disco)" if disk_path in self.windows_disk_paths
+                    else "NÃO confirmado neste disco"
+                ),
                 candidates=len(self.inventory.get("windows_candidates", [])),
                 efi=len(self.inventory.get("efi_partitions", [])),
                 disks=len(disks),
+                windows_disks=", ".join(self.inventory.get("windows_disk_paths", [])) or "nenhum",
                 bitlocker="SIM" if self.bitlocker_detected else "não identificado (estado não certificado)",
             )
         )
@@ -318,7 +325,14 @@ class InstallerWindow(QMainWindow):
         elif self.efi_combo.count() == 0:
             self.disk_note.setText("Não há EFI System Partition confirmada neste disco. Plano bloqueado.")
         else:
-            self.disk_note.setText("Geometria lida em modo somente leitura. Selecione explicitamente a região e a EFI.")
+            if disk_path not in self.windows_disk_paths:
+                self.disk_note.setText(
+                    "Windows 10/11 não foi confirmado neste disco. Por segurança, o plano de dual boot será bloqueado."
+                )
+            else:
+                self.disk_note.setText(
+                    "Windows confirmado neste disco. Geometria lida em modo somente leitura; selecione região e EFI."
+                )
         self._update_root_limit()
 
     def _update_root_limit(self):
