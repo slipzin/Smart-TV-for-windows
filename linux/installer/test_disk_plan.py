@@ -18,6 +18,10 @@ class DiskPlanValidationTests(unittest.TestCase):
                 "start_bytes": 500 * 1024 * 1024,
                 "size_bytes": 100 * GIB,
             }],
+            "windows_installations": [{
+                "boot_partition_path": "/dev/nvme0n1p1",
+                "disk_path": "/dev/nvme0n1",
+            }],
         }
         self.plan = InstallPlan(
             disk_path="/dev/nvme0n1", table="gpt", boot_mode="uefi",
@@ -91,6 +95,28 @@ class DiskPlanValidationTests(unittest.TestCase):
                 InstallPlan(**{**self.plan.__dict__, "efi_partition_path": "/dev/sdb1"}),
                 inventory,
             )
+
+    def test_rejects_target_disk_without_confirmed_windows(self):
+        other_disk = {
+            "disks": [{"path": "/dev/sdb", "partition_table": "gpt"}],
+            "efi_partitions": [{
+                "path": "/dev/sdb1", "disk_path": "/dev/sdb",
+                "fstype": "vfat", "parttype": EFI_GUID,
+            }],
+            "free_regions": [{
+                "disk_path": "/dev/sdb",
+                "start_bytes": 500 * 1024 * 1024,
+                "size_bytes": 100 * GIB,
+            }],
+        }
+        inventory = {**self.inventory, **other_disk}
+        plan = InstallPlan(**{
+            **self.plan.__dict__,
+            "disk_path": "/dev/sdb",
+            "efi_partition_path": "/dev/sdb1",
+        })
+        with self.assertRaisesRegex(UnsafeInstallPlan, "Windows confirmado não foi associado"):
+            validate_install_plan(plan, inventory)
 
 
 if __name__ == "__main__":
