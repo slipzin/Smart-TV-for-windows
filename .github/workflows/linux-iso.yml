@@ -24,7 +24,7 @@ on:
         default: 'v0.1.0-alpha.1'
 
 concurrency:
-  group: smarttv-linux-iso-${{ github.ref }}-${{ github.sha }}
+  group: smarttv-linux-iso-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
