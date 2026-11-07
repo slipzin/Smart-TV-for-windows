@@ -24,7 +24,7 @@ mapfile -t FLATPAKS < <(read_manifest "$PROFILES/console-flatpaks.txt")
 # package manifest and must never be installed from the live-image build.
 mapfile -t TV_APT < <(read_manifest "$PROFILES/tv-packages.txt")
 for package in "${CONSOLE_APT[@]}"; do
-  if printf '%s\\n' "${TV_APT[@]}" | grep -Fxq -- "$package"; then
+  if printf '%s\n' "${TV_APT[@]}" | grep -Fxq -- "$package"; then
     echo "Pacote exclusivo do Modo Console entrou no perfil TV: $package" >&2
     exit 1
   fi
