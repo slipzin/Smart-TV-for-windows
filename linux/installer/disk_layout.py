@@ -7,7 +7,7 @@ import subprocess
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-_BYTE_VALUE = re.compile(r"^([0-9]+(?:\\.[0-9]+)?)B$", re.IGNORECASE)
+_BYTE_VALUE = re.compile(r"^([0-9]+(?:\.[0-9]+)?)B$", re.IGNORECASE)
 
 
 def _bytes(value: str) -> int | None:
