@@ -31,18 +31,18 @@ A ISO experimental está sendo preparada com:
 - **Flatpak e integração do Discover com Flatpak** — suporte para catálogo Flatpak; na compilação atual o repositório Flathub é habilitado na imagem.
 - **Kodi e VLC** — reprodução de mídia.
 - **Modo TV leve** — interface, loja, Bluetooth, mídia e aceleração de vídeo; Moonlight/Steam Link podem ser instalados pela loja para jogar a partir de outro PC.
-- **Modo Console opcional** — instala Steam, Wine/Proton, Lutris, GameMode, MangoHud e emuladores somente quando o usuário solicitar.
+- **Modo Console separado** — os manifestos e componentes de jogos locais são mantidos para uma edição futura, mas não são instalados nem ativados nesta ISO TV-only.
 
 A interface Linux procura aplicativos que tenham lançadores de desktop compatíveis. A loja Discover pode instalar aplicativos do repositório Debian. Com o Flathub configurado, também pode apresentar aplicativos distribuídos como Flatpak.
 
 ### O que não está incluído ou não é garantido
 
-- **A ISO inicia em Modo TV leve.** Xbox Cloud Gaming, GeForce NOW/Steam Cloud Play e Boosteroid abrem pelo navegador; não é necessário um segundo PC. Steam, Wine/Proton, Lutris, GameMode, MangoHud e emuladores não são instalados por padrão. Para baixar jogos e executá-los localmente, selecione Modo Console em Ajustes do Início e rode o instalador gamer opcional a partir do desktop. Moonlight/Steam Link são alternativas secundárias para quem já tem outro PC na rede.
+- **A ISO inicia somente em Modo TV.** Xbox Cloud Gaming, GeForce NOW e Boosteroid são atalhos que abrem os serviços no navegador; disponibilidade e qualidade dependem da região, conta, DRM, GPU, navegador e controle. Steam local, Wine/Proton, Lutris e emuladores não fazem parte desta imagem. O Modo Console será distribuído separadamente.
 - Nem todo aplicativo Windows tem versão Linux.
 - Compatibilidade de jogos depende de GPU, drivers, Proton e sistemas antitrapaça. Alguns jogos não funcionam no Linux.
 - Serviços de streaming podem ter limitações de DRM, resolução ou controle dependendo do serviço e do navegador.
 - A compatibilidade de Wi-Fi, Bluetooth, áudio, suspensão, controles e placas NVIDIA varia por computador.
-- O instalador Calamares desta imagem usa uma configuração genérica. A instalação ao lado do Windows ainda não foi validada para todos os cenários.
+- O assistente gráfico próprio desta imagem é somente de diagnóstico e planejamento. Ele não instala o sistema nem altera discos. O dual boot ainda não foi validado.
 
 ## 3. Quanto espaço reservar no HD/SSD?
 
