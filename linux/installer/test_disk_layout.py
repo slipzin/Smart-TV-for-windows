@@ -14,7 +14,7 @@ SAMPLE = """BYT;
 
 
 class DiskLayoutTests(unittest.TestCase):
-    def test_parses_only_explicit_free_space_rows(self):
+    def test_parses_only_explicit_consistent_free_space_rows(self):
         regions = parse_parted_free_regions(SAMPLE, "/dev/nvme0n1")
         self.assertEqual(len(regions), 2)
         self.assertEqual(regions[0]["start_bytes"], 17408)
@@ -24,6 +24,16 @@ class DiskLayoutTests(unittest.TestCase):
     def test_rejects_non_device_path(self):
         with self.assertRaises(ValueError):
             parse_parted_free_regions(SAMPLE, "nvme0n1")
+
+    def test_rejects_header_for_a_different_disk(self):
+        with self.assertRaisesRegex(ValueError, "outro dispositivo"):
+            parse_parted_free_regions(SAMPLE, "/dev/sdb")
+
+    def test_ignores_inconsistent_or_fractional_byte_rows(self):
+        malformed = SAMPLE + "3:1000000.5B:2000000B:1000000B:Free Space;\n"
+        malformed += "4:3000000B:3999999B:900000B:Free Space;\n"
+        regions = parse_parted_free_regions(malformed, "/dev/nvme0n1")
+        self.assertEqual(len(regions), 2)
 
     @patch("installer.disk_layout.shutil.which", return_value="/usr/sbin/parted")
     @patch("installer.disk_layout.subprocess.run")
