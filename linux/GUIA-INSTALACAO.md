@@ -1,10 +1,10 @@
 # Smart TV OS — guia completo de download, pendrive e dual boot
 
-> **Aviso importante: versão experimental.**
+> **Aviso importante: versão experimental e somente Live.**
 >
-> Esta edição é baseada no Debian 13 e foi criada para testar a interface Smart TV em um PC Linux. A ISO contém o ambiente KDE Plasma, o launcher Smart TV, a loja KDE Discover e o instalador Calamares. Mesmo com o instalador presente, o procedimento de instalação permanente e o dual boot com Windows ainda precisam de validação em computadores reais.
+> Esta edição é baseada no Debian 13 e contém o ambiente KDE Plasma, a interface Smart TV, a loja KDE Discover e um assistente gráfico próprio em português. O assistente atual faz diagnóstico e simulação de planejamento; não executa particionamento nem instalação. **Calamares não está integrado.**
 >
-> **Recomendação atual:** primeiro use o modo Live pelo pendrive. Não instale no disco principal que contém o Windows até que o fluxo de particionamento e recuperação tenha sido testado e declarado pronto pelo projeto. Este guia explica o planejamento correto e os pontos que precisam ser conferidos; não é uma garantia de instalação sem risco.
+> **Recomendação atual:** grave o pendrive apenas para iniciar e testar o modo Live. Não tente instalar permanentemente nem altere as partições do Windows com esta versão. A mídia USB ainda não conclui a instalação no SSD/HD interno.
 
 ## 1. Antes de começar: ISO, pendrive e partição são coisas diferentes
 
@@ -254,81 +254,31 @@ Se você liberar 200 GB, esses 200 GB serão destinados ao Linux. Na instalaçã
 
 Se desejar uma biblioteca enorme de jogos, planeje espaço adicional antes de instalar. Uma partição de jogos separada é opcional e pode ser configurada depois, quando o sistema básico estiver estável.
 
-## 10. Instalação permanente ao lado do Windows: atenção ao estado experimental
+## 10. Instalação permanente: ainda não disponível
 
-<badge>Não recomendado para iniciantes nesta versão</badge>
+**Não execute uma instalação permanente com esta versão.** A mídia USB inicia o ambiente Live; o assistente gráfico próprio é apenas um planejador sem escrita. Ele pode listar discos, consultar o UEFI, correlacionar uma entrada do os-prober com o inventário de partições e consultar regiões Free Space com `parted`. A tela de revisão valida uma simulação e sempre mantém `execution_enabled=false`.
 
-O Calamares está presente na ISO, mas a configuração do instalador ainda é genérica e o fluxo de dual boot não foi validado em hardware real. Por isso, **não recomendamos instalar esta versão no computador principal com Windows e dados importantes**. O uso recomendado agora é o modo Live ou uma máquina virtual com disco descartável e snapshot.
+Não existe nesta versão motor de particionamento, criação de sistema de arquivos, montagem, cópia do Debian, configuração de `fstab`, instalação do GRUB ou rollback. O botão de validação não instala nada. Não use instruções antigas de Calamares: ele não está integrado.
 
-O roteiro abaixo explica o que precisa ser conferido em um teste. As telas e opções do instalador podem variar; se não corresponderem ao que está descrito, cancele.
+**Preservação do Windows:** o planejador bloqueia o disco se não conseguir associar a entrada do Windows a uma partição conhecida e a um volume NTFS no mesmo disco selecionado. Uma partição NTFS isolada não prova que o Windows está instalado. A EFI é identificada pelo GUID GPT e só é listada para futura reutilização, nunca para formatação. O estado real do BitLocker não pode ser certificado pelo Linux nesta fase; a caixa de confirmação é uma declaração do usuário e não libera nenhuma escrita.
 
-### 10.1 Conferência antes de abrir o instalador
+Use somente o modo Live ou uma máquina virtual com disco virtual descartável e snapshot. Não selecione partições existentes, não tente criar partições manualmente e não execute comandos de formatação ou bootloader.
 
-Todos estes itens precisam estar confirmados:
+## 11. Condições obrigatórias antes de existir um instalador real
 
-- Backup testado.
-- Chave BitLocker salva, se aplicável.
-- Windows inicia normalmente.
-- Existe espaço **Não alocado** no disco certo.
-- O pendrive foi iniciado no mesmo modo UEFI/Legacy do Windows.
-- Você identificou o disco correto por modelo e capacidade.
-- Não há outro disco com arquivos importantes que possa ser selecionado por engano.
+Antes de habilitar qualquer escrita, o projeto precisa implementar e testar:
 
-### 10.2 Abrir o Calamares em ambiente de teste
+- Verificação confiável do Windows 10/11 e do estado do BitLocker, incluindo orientação para a chave de recuperação.
+- Nova leitura da tabela GPT e da geometria exata do espaço não alocado imediatamente antes de cada operação.
+- Criação da partição Linux exclusivamente dentro do espaço não alocado; nenhuma partição Windows pode ser redimensionada ou formatada pelo instalador.
+- Reutilização da EFI correta sem formatar nem apagar arquivos EFI existentes.
+- Instalação transacional, validação de espaço e energia, logs, recuperação/rollback e preservação do Windows Boot Manager.
+- Testes em imagens de disco e VMs com snapshots, seguidos por testes em hardware representativo, incluindo Windows 10/11, SATA/NVMe e Secure Boot.
 
-1. No KDE, localize o atalho **Instalar Smart TV OS** na área de trabalho.
-2. Abra o instalador.
-3. Revise idioma, região, fuso horário e teclado.
-4. Na seleção do disco, compare modelo e capacidade com o disco que você preparou.
-5. Leia a etapa de particionamento e a prévia das mudanças com atenção.
+Até que esses requisitos sejam concluídos, esta ISO deve ser considerada uma imagem Live de testes, não uma mídia de instalação permanente.
+## 12. Usar a loja de aplicativos no modo Live
 
-Se o instalador oferecer somente apagar o disco, se não reconhecer o Windows, se não mostrar claramente o espaço não alocado ou se sugerir formatar o disco inteiro, **cancele**.
-
-### 10.3 Resultado de particionamento esperado (UEFI/GPT)
-
-Em um futuro instalador validado, o objetivo de dual boot é:
-
-1. Criar uma nova partição Linux **ext4**, dentro do espaço não alocado que foi reservado no Windows, montada como **/**.
-2. Reutilizar a partição EFI System Partition (ESP) existente do Windows como **/boot/efi**, sem formatá-la.
-3. Manter todas as partições NTFS do Windows intactas.
-4. Manter as partições MSR e de Recuperação intactas.
-5. Instalar o carregador de inicialização no disco correto, preservando os arquivos EFI existentes.
-
-**Nunca marque para formatar a partição EFI existente. Nunca formate a partição NTFS do Windows.** Não exclua partições para “abrir espaço”: use somente o espaço não alocado que você criou no Windows.
-
-A partição Linux principal é onde ficam o sistema e os programas instalados pela loja. Não é necessário criar uma partição para o Discover ou outra partição para cada aplicativo. Uma partição separada para jogos é opcional e não faz parte do primeiro passo.
-
-Se houver uma opção explícita de instalar ao lado do Windows, ainda assim leia o resumo de alterações. Se não houver uma opção que preserve claramente o Windows e a partição EFI, não tente adivinhar no particionamento manual: cancele.
-
-### 10.4 Revisão obrigatória antes de confirmar
-
-Antes de qualquer botão final de instalação, confirme que a tela informa claramente:
-
-- A nova partição Linux foi criada dentro do espaço que estava não alocado.
-- A partição NTFS do Windows não será formatada nem excluída.
-- A partição EFI será reutilizada sem formatação.
-- As partições de recuperação permanecem intactas.
-- O carregador de inicialização está no disco correto.
-
-Se a tela não permitir conferir esses itens, pare. O projeto ainda precisa testar e documentar esse fluxo em máquinas reais.
-
-## 11. Primeira inicialização depois de uma instalação de teste
-
-Somente em uma máquina de teste ou depois que o instalador estiver validado:
-
-1. Desligue o computador e remova o pendrive.
-2. Ligue novamente.
-3. Confira se aparece um menu GRUB.
-4. Teste a entrada Smart TV OS.
-5. Reinicie e teste **Windows Boot Manager**.
-6. No Windows, confira se arquivos e programas continuam acessíveis.
-7. Só depois de comprovar que o Windows inicia normalmente, retome o BitLocker, se a proteção foi suspensa.
-
-Se o Windows não aparecer no GRUB, não formate nada e não reinstale às pressas. O Windows Boot Manager pode continuar disponível pelo menu de boot do firmware. Procure suporte antes de executar comandos que alterem partições ou o bootloader.
-
-## 12. Usar a loja de aplicativos depois da instalação
-
-Depois que o Smart TV OS estiver instalado no disco e conectado à internet:
+Durante o teste Live e com conexão à internet:
 
 1. Abra o menu de aplicativos do KDE ou procure **Discover** na interface Smart TV.
 2. Abra a loja KDE Discover.
