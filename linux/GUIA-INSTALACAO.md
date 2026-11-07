@@ -199,6 +199,8 @@ Para sair, desligue o sistema pelo menu. Remova o pendrive somente depois que o 
 
 ## 9. Preparar o Windows para o dual boot
 
+> **Importante: não altere o disco nesta versão.** O instalador ainda não executa instalação permanente. Não diminua a partição C:, não suspenda o BitLocker, não desative configurações de inicialização e não crie espaço para o Linux agora. Esta seção descreve apenas cuidados para uma versão futura; neste momento, use a ISO somente em modo Live.
+
 > Faça backup antes. Redimensionar partições e alterar a inicialização pode causar perda de dados. Se não conseguir identificar o disco ou as partições com certeza, pare e peça ajuda técnica.
 
 ### 9.1 Fazer backup
@@ -213,17 +215,13 @@ Para sair, desligue o sistema pelo menu. Remova o pendrive somente depois que o 
 1. No Windows, pesquise **Gerenciar BitLocker** ou **Criptografia do dispositivo**.
 2. Se a unidade estiver criptografada, localize e guarde a chave de recuperação de 48 dígitos em local seguro e separado do PC.
 3. Confirme que consegue acessar a chave.
-4. Antes de uma instalação permanente, suspenda temporariamente a proteção conforme a documentação da Microsoft. Depois de confirmar que Windows e Linux iniciam corretamente, retome a proteção.
+4. **Não suspenda nem desative o BitLocker para testar esta ISO.** A versão atual não instala nem escreve no disco. Uma versão futura só poderá orientar qualquer suspensão depois que o fluxo de instalação e recuperação estiver validado.
 
 Consulte [como fazer backup da chave de recuperação do BitLocker](https://support.microsoft.com/pt-br/windows/security/encryption/back-up-your-bitlocker-recovery-key). Nunca publique essa chave em fóruns ou capturas de tela.
 
 ### 9.3 Desativar a Inicialização Rápida
 
-1. Abra o **Painel de Controle**.
-2. Entre em **Opções de Energia**.
-3. Escolha **Escolher a função dos botões de energia**.
-4. Clique em **Alterar configurações não disponíveis no momento**.
-5. Desmarque **Ligar inicialização rápida** e salve.
+**Não altere essa configuração para a versão atual.** A ISO ainda não instala o sistema. Se uma versão futura validada exigir a desativação da Inicialização Rápida, o procedimento será documentado junto com os testes de dual boot.
 
 ### 9.4 Identificar UEFI ou Legacy
 
@@ -234,19 +232,15 @@ Consulte [como fazer backup da chave de recuperação do BitLocker](https://supp
 
 O pendrive e o instalador devem ser iniciados no mesmo modo de firmware usado pelo Windows. Este guia descreve principalmente o cenário UEFI/GPT. Se seu Windows usa Legacy/MBR, não siga o particionamento UEFI sem um procedimento específico.
 
-### 9.5 Liberar espaço no Windows sem criar um volume
+### 9.5 Não redimensione o Windows nesta versão
 
-1. Inicie o Windows normalmente.
-2. Pressione **Win + R**, digite **diskmgmt.msc** e pressione Enter.
-3. Identifique o disco que contém o Windows, normalmente a unidade C:.
-4. Clique com o botão direito na partição C: e selecione **Diminuir Volume**.
-5. Informe o espaço que deseja liberar para o Linux.
-6. Confirme e aguarde.
-7. Ao final, o Gerenciamento de Disco deverá mostrar uma área **Não alocada**.
 
-**Não crie um novo volume NTFS nesse espaço.** Deixe-o não alocado para que o instalador Linux possa usá-lo. Não exclua, não formate e não redimensione as partições EFI, MSR ou Recuperação do Windows.
 
-Consulte o guia da Microsoft sobre [Gerenciamento de Disco no Windows](https://support.microsoft.com/pt-br/windows/experience/storage-filemanagement/disk-management-in-windows).
+**Não diminua a partição C: nem crie espaço não alocado agora.** O assistente desta ISO ainda não instala o Linux; preparar partições neste momento só deixaria o disco alterado sem concluir o dual boot.
+
+
+
+Quando existir uma versão com motor de instalação validado, o projeto publicará um procedimento atualizado para liberar espaço pelo Gerenciamento de Disco do Windows. Até lá, mantenha todas as partições como estão. Nunca exclua, formate ou redimensione as partições EFI, MSR, Windows ou Recuperação.
 
 ### Exemplo de planejamento
 
