@@ -20,6 +20,21 @@ mapfile -t CONSOLE_APT < <(read_manifest "$PROFILES/console-apt-packages.txt")
 mapfile -t BACKPORTS < <(read_manifest "$PROFILES/console-backports-packages.txt")
 mapfile -t FLATPAKS < <(read_manifest "$PROFILES/console-flatpaks.txt")
 
+# The ISO is TV-only. Console runtimes and emulators must stay out of its
+# package manifest and must never be installed from the live-image build.
+mapfile -t TV_APT < <(read_manifest "$PROFILES/tv-packages.txt")
+for package in "${CONSOLE_APT[@]}"; do
+  if printf '%s\\n' "${TV_APT[@]}" | grep -Fxq -- "$package"; then
+    echo "Pacote exclusivo do Modo Console entrou no perfil TV: $package" >&2
+    exit 1
+  fi
+done
+if grep -Eq 'flatpak[[:space:]]+install' "$ROOT/linux/build-iso.sh"; then
+  echo "O build TV não pode instalar Flatpaks do perfil Console." >&2
+  exit 1
+fi
+echo "TV-only package scope verified; Console packages remain separate."
+
 export DEBIAN_FRONTEND=noninteractive
 
 # The Debian container may expose only main by default. Match the ISO's archive
