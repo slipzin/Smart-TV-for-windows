@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 EFI_GUID = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+MS_BASIC_DATA_GUID = "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 
 
 def run_json(command: list[str]) -> dict[str, Any]:
@@ -28,6 +29,7 @@ def inspect_system() -> dict[str, Any]:
 
     disks = []
     windows_candidates = []
+    windows_volume_candidates = []
     bitlocker_partitions = []
     partition_index: dict[str, dict[str, Any]] = {}
 
@@ -59,12 +61,18 @@ def inspect_system() -> dict[str, Any]:
                 fs = (item.get("fstype") or "").lower()
                 label = (item.get("label") or "").lower()
                 if fs == "ntfs" or "windows" in label or "microsoft" in label:
-                    windows_candidates.append({
+                    candidate = {
                         "path": path,
                         "fstype": item.get("fstype"),
                         "label": item.get("label"),
+                        "parttype": (item.get("parttype") or "").lower(),
                         "disk_path": disk_path,
-                    })
+                    }
+                    windows_candidates.append(candidate)
+                    # Recovery partitions and arbitrary NTFS data volumes are
+                    # not accepted as the Windows system-volume evidence.
+                    if fs == "ntfs" and candidate["parttype"] == MS_BASIC_DATA_GUID:
+                        windows_volume_candidates.append(candidate)
                 if fs in {"bitlocker", "bitlk"}:
                     bitlocker_partitions.append(path)
                 inspect_children(item.get("children") or [])
@@ -95,12 +103,11 @@ def inspect_system() -> dict[str, Any]:
                     continue
                 # A boot-manager entry alone is insufficient if this disk has
                 # no NTFS Windows volume in the same inventory snapshot.
-                same_disk_ntfs = any(
+                same_disk_windows_volume = any(
                     candidate.get("disk_path") == partition["disk_path"]
-                    and (candidate.get("fstype") or "").lower() == "ntfs"
-                    for candidate in windows_candidates
+                    for candidate in windows_volume_candidates
                 )
-                if not same_disk_ntfs:
+                if not same_disk_windows_volume:
                     windows_unmapped_entries.append(line)
                     continue
                 windows_entries.append(line)
@@ -160,7 +167,8 @@ def inspect_system() -> dict[str, Any]:
         "windows_disk_paths": windows_disk_paths,
         "windows_unmapped_entries": windows_unmapped_entries,
         "windows_candidates": windows_candidates,
-        "bitlocker_detected": bool(bitlocker_partitions),
+        "windows_volume_candidates": windows_volume_candidates,
+        "bitlocker_detected": bool(bitlocker_partitions)
         "bitlocker_partitions": bitlocker_partitions,
         "efi_partitions": efi_partitions,
         "disks": disks,
