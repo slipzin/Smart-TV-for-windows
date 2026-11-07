@@ -168,7 +168,7 @@ def inspect_system() -> dict[str, Any]:
         "windows_unmapped_entries": windows_unmapped_entries,
         "windows_candidates": windows_candidates,
         "windows_volume_candidates": windows_volume_candidates,
-        "bitlocker_detected": bool(bitlocker_partitions)
+        "bitlocker_detected": bool(bitlocker_partitions),
         "bitlocker_partitions": bitlocker_partitions,
         "efi_partitions": efi_partitions,
         "disks": disks,
