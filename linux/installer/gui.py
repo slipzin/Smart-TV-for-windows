@@ -228,7 +228,6 @@ class InstallerWindow(QMainWindow):
         self.review_ack = QCheckBox(
             "Confirmo que revisei o disco, a região não alocada e a EFI. Entendo que esta validação é apenas uma simulação."
         )
-        self.review_ack.setWordWrap(True)
         layout.addWidget(self.review_ack)
 
         self.validation_label = QLabel(
