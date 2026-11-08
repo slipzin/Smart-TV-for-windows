@@ -254,11 +254,14 @@ lb config \
 
 lb build
 
-# Smoke-test the installed graphical planner inside the actual live rootfs.
+# Exercise the actual GUI constructor and explicit review gate in an offscreen Qt session.
 test -x "$WORK/chroot/usr/local/bin/smarttv-installer-gui"
 test -f "$WORK/chroot/usr/local/lib/smarttv/installer/gui.py"
-chroot "$WORK/chroot" env PYTHONPATH=/usr/local/lib/smarttv python3 -c \
-  'import PyQt5.QtWidgets; from installer.gui import InstallerWindow; print("Smart TV OS installer GUI import: OK")'
+test -f "$WORK/chroot/usr/local/lib/smarttv/installer/smoke_gui.py"
+chroot "$WORK/chroot" env \
+  PYTHONPATH=/usr/local/lib/smarttv \
+  QT_QPA_PLATFORM=offscreen \
+  python3 -m installer.smoke_gui
 
 ISO="$(find . -maxdepth 1 -type f -name '*.iso' -print -quit)"
 if [ -z "$ISO" ]; then echo "live-build terminou sem gerar ISO." >&2; exit 1; fi
