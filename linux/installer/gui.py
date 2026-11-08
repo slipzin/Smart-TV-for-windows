@@ -225,6 +225,12 @@ class InstallerWindow(QMainWindow):
         self.bitlocker_ack.setVisible(False)
         layout.addWidget(self.bitlocker_ack)
 
+        self.review_ack = QCheckBox(
+            "Confirmo que revisei o disco, a região não alocada e a EFI. Entendo que esta validação é apenas uma simulação."
+        )
+        self.review_ack.setWordWrap(True)
+        layout.addWidget(self.review_ack)
+
         self.validation_label = QLabel(
             "A validação não libera a instalação. O mecanismo de particionamento e cópia do sistema ainda não existe."
         )
@@ -263,8 +269,8 @@ class InstallerWindow(QMainWindow):
             "BitLocker detectado: {bitlocker}".format(
                 uefi="SIM" if self.inventory.get("uefi") else "NÃO",
                 windows=(
-                    "SIM (neste disco)" if disk_path in self.windows_disk_paths
-                    else "NÃO confirmado neste disco"
+                    "SIM — " + ", ".join(sorted(self.windows_disk_paths))
+                    if self.windows_disk_paths else "NÃO confirmado"
                 ),
                 candidates=len(self.inventory.get("windows_candidates", [])),
                 efi=len(self.inventory.get("efi_partitions", [])),
@@ -353,6 +359,7 @@ class InstallerWindow(QMainWindow):
         disk_path = self.disk_combo.currentData()
         region = self.region_combo.currentData()
         efi_path = self.efi_combo.currentData()
+        self.review_ack.setChecked(False)
         if not disk_path or not region or not efi_path:
             self.review_summary.setText("Selecione um disco GPT, uma região não alocada e uma EFI do mesmo disco.")
             self.bitlocker_ack.setVisible(self.windows_present or self.bitlocker_detected)
@@ -370,7 +377,10 @@ class InstallerWindow(QMainWindow):
                 size=region["size_bytes"] / GIB,
                 root=self.root_size.value(),
                 efi=efi_path,
-                windows="SIM" if self.inventory.get("windows_detected") else "NÃO",
+                windows=(
+                    "SIM neste disco" if disk_path in self.windows_disk_paths
+                    else "NÃO confirmado neste disco"
+                ),
             )
         )
         self.bitlocker_ack.setVisible(self.windows_present or self.bitlocker_detected)
@@ -397,10 +407,10 @@ class InstallerWindow(QMainWindow):
             root_bytes=self.root_size.value() * GIB,
             efi_partition_path=efi_path,
             windows_present=self.windows_present,
-            windows_confirmed=bool(self.inventory.get("windows_detected")),
+            windows_confirmed=disk_path in self.windows_disk_paths,
             bitlocker_detected=self.bitlocker_detected,
             bitlocker_cleared_by_user=self.bitlocker_ack.isChecked(),
-            user_confirmed=True,
+            user_confirmed=self.review_ack.isChecked(),
         )
         try:
             result = validate_install_plan(plan, inventory)
