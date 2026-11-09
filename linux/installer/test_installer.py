@@ -138,6 +138,8 @@ class InstallerPreflightTests(unittest.TestCase):
         self.assertFalse(report["windows_detected"])
         self.assertFalse(report["windows_installations"])
         self.assertFalse(report["windows_volume_candidates"])
+        self.assertTrue(report["windows_unmapped_entries"])
+        self.assertFalse(report["windows_ambiguous_entries"])
 
     @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
     @patch("installer.smarttv_installer.Path.exists", return_value=True)
