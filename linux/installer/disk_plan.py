@@ -11,6 +11,7 @@ from typing import Any
 GIB = 1024 ** 3
 MIB = 1024 ** 2
 MIN_ROOT_BYTES = 40 * GIB
+MIN_EFI_BYTES = 100 * MIB
 EFI_GUID = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
 
 
@@ -49,7 +50,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
     if not plan.user_confirmed:
         raise UnsafeInstallPlan("A revisão final do usuário ainda não foi confirmada.")
     if not plan.windows_confirmed:
-        raise UnsafeInstallPlan("Windows 10/11 não foi confirmado com confiança; instalação bloqueada.")
+        raise UnsafeInstallPlan("A pré-detecção Windows não foi associada com segurança; instalação bloqueada.")
     confirmed_windows_disks = {
         item.get("disk_path")
         for item in inventory.get("windows_installations", [])
@@ -57,7 +58,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
     }
     if plan.disk_path not in confirmed_windows_disks:
         raise UnsafeInstallPlan(
-            "O Windows confirmado não foi associado ao disco selecionado; dual boot neste disco está bloqueado."
+            "A pré-detecção Windows não foi associada ao disco selecionado; dual boot neste disco está bloqueado."
         )
     if plan.windows_present and not plan.bitlocker_cleared_by_user:
         raise UnsafeInstallPlan(
@@ -104,6 +105,9 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("O tipo GPT da partição selecionada não é EFI System Partition.")
     if (efi.get("fstype") or "").lower() != "vfat":
         raise UnsafeInstallPlan("A partição EFI não está em FAT; operação bloqueada.")
+    efi_size = efi.get("size_bytes")
+    if not isinstance(efi_size, int) or efi_size < MIN_EFI_BYTES:
+        raise UnsafeInstallPlan("A partição EFI tem menos de 100 MiB ou tamanho desconhecido; operação bloqueada.")
 
     return {
         "valid": True,
@@ -114,9 +118,9 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         "free_region_start": plan.free_region_start,
         "free_region_bytes": plan.free_region_bytes,
         "root_bytes": plan.root_bytes,
-        "efi": {"path": plan.efi_partition_path, "format": False, "reuse": True},
+        "efi": {"path": plan.efi_partition_path, "size_bytes": efi_size, "format": False, "reuse": True},
         "existing_partitions_modified": False,
-        "windows_confirmed": True,
+        "windows_pre_detection": True,
         "execution_enabled": False,
-        "message": "Plano validado em modo de simulação; execução de escrita continua desabilitada.",
+        "message": "Pré-plano validado em modo de simulação; escrita continua desabilitada e o Windows ainda requer confirmação adicional.",
     }
