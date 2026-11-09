@@ -120,23 +120,24 @@ class InstallerWindow(QMainWindow):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addLayout(self._heading(
-            "Bem-vindo", "Instalação do Smart TV OS",
-            "Um assistente em português para preparar o planejamento do dual boot com Windows 10/11.",
+            "Bem-vindo", "Preparação do Smart TV OS",
+            "Assistente em português para inspecionar o computador e planejar um possível dual boot com Windows 10/11.",
         ))
         layout.addSpacing(10)
         layout.addWidget(card(
-            "Seu Windows será preservado",
-            "O projeto foi desenhado para instalar o Smart TV OS somente em espaço realmente não alocado. "
-            "A partição EFI existente será identificada para reutilização, nunca formatada por este assistente.",
+            "Meta: preservar o Windows",
+            "A instalação futura deverá usar exclusivamente espaço realmente não alocado. "
+            "A partição EFI existente deverá ser reutilizada sem formatação. Se a identificação do Windows, "
+            "do disco ou da geometria não for inequívoca, o instalador deverá bloquear a operação.",
         ))
         layout.addWidget(card(
-            "Antes de começar",
-            "Faça backup dos seus arquivos. Se o Windows usar BitLocker, tenha a chave de recuperação e "
-            "suspenda a proteção no próprio Windows antes de qualquer instalação futura.",
+            "Antes de qualquer instalação futura",
+            "Faça backup dos arquivos e confirme a chave de recuperação do BitLocker. "
+            "Esta versão não consegue certificar o estado do BitLocker e não executa alterações no Windows.",
         ))
         warning = QLabel(
-            "AVISO: esta versão é um assistente de diagnóstico e planejamento. Ela não cria partições, "
-            "não formata discos e não instala o sistema."
+            "AVISO: esta versão é somente de diagnóstico e planejamento. Não cria partições, "
+            "não formata discos, não instala o sistema e não garante ainda um dual boot funcional."
         )
         warning.setObjectName("warning")
         warning.setWordWrap(True)
@@ -149,7 +150,8 @@ class InstallerWindow(QMainWindow):
         layout = QVBoxLayout(page)
         layout.addLayout(self._heading(
             "Verificação", "Vamos conferir o computador",
-            "A leitura é somente de consulta. Se a identificação do Windows, UEFI ou EFI for inconclusiva, a instalação ficará bloqueada.",
+            "A leitura é somente de consulta. A pré-detecção de Windows é indicativa; "
+            "não comprova sozinha que o volume contém uma instalação funcional.",
         ))
         self.check_summary = QLabel("Inspeção ainda não executada.")
         self.check_summary.setObjectName("body")
@@ -260,18 +262,20 @@ class InstallerWindow(QMainWindow):
         self.bitlocker_detected = bool(self.inventory.get("bitlocker_detected"))
         self.check_summary.setText(
             "Inicialização UEFI: {uefi}\n"
-            "Windows confirmado pelo os-prober: {windows}\n"
+            "Pré-detecção Windows (os-prober + NTFS único): {windows}\n"
             "Partições NTFS candidatas: {candidates}\n"
+            "Associações ambíguas: {ambiguous}\n"
             "Partições EFI confirmadas: {efi}\n"
             "Discos detectados: {disks}\n"
-            "Discos com Windows confirmado: {windows_disks}\n"
+            "Discos com pré-detecção Windows: {windows_disks}\n"
             "BitLocker detectado: {bitlocker}".format(
                 uefi="SIM" if self.inventory.get("uefi") else "NÃO",
                 windows=(
                     "SIM — " + ", ".join(sorted(self.windows_disk_paths))
-                    if self.windows_disk_paths else "NÃO confirmado"
+                    if self.windows_disk_paths else "NÃO confirmada"
                 ),
                 candidates=len(self.inventory.get("windows_candidates", [])),
+                ambiguous=len(self.inventory.get("windows_ambiguous_entries", [])),
                 efi=len(self.inventory.get("efi_partitions", [])),
                 disks=len(disks),
                 windows_disks=", ".join(self.inventory.get("windows_disk_paths", [])) or "nenhum",
@@ -329,15 +333,14 @@ class InstallerWindow(QMainWindow):
             self.disk_note.setText("Nenhuma região não alocada foi confirmada. Não selecione nem formate partições existentes.")
         elif self.efi_combo.count() == 0:
             self.disk_note.setText("Não há EFI System Partition confirmada neste disco. Plano bloqueado.")
+        elif disk_path not in self.windows_disk_paths:
+            self.disk_note.setText(
+                "A pré-detecção de Windows não foi associada a este disco. Por segurança, o plano de dual boot será bloqueado."
+            )
         else:
-            if disk_path not in self.windows_disk_paths:
-                self.disk_note.setText(
-                    "Windows 10/11 não foi confirmado neste disco. Por segurança, o plano de dual boot será bloqueado."
-                )
-            else:
-                self.disk_note.setText(
-                    "Windows confirmado neste disco. Geometria lida em modo somente leitura; selecione região e EFI."
-                )
+            self.disk_note.setText(
+                "Pré-detecção Windows associada a este disco. A existência do sistema ainda precisará de confirmação adicional."
+            )
         self._update_root_limit()
 
     def _update_root_limit(self):
@@ -368,7 +371,7 @@ class InstallerWindow(QMainWindow):
             "Região livre: início {start:.3f} GiB; tamanho {size:.1f} GiB\n"
             "Partição raiz planejada: {root} GiB\n"
             "EFI existente: {efi} (reutilizar, sem formatar)\n"
-            "Windows confirmado: {windows}\n"
+            "Pré-detecção Windows neste disco: {windows}\n"
             "Partições existentes alteradas: NÃO\n"
             "Execução de instalação: DESABILITADA".format(
                 disk=disk_path,
@@ -377,8 +380,8 @@ class InstallerWindow(QMainWindow):
                 root=self.root_size.value(),
                 efi=efi_path,
                 windows=(
-                    "SIM neste disco" if disk_path in self.windows_disk_paths
-                    else "NÃO confirmado neste disco"
+                    "SIM — ainda requer confirmação adicional" if disk_path in self.windows_disk_paths
+                    else "NÃO associada a este disco"
                 ),
             )
         )
