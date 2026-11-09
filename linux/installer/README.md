@@ -15,8 +15,8 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 - Interface Qt em tela maximizada, em português, com boas-vindas, diagnóstico,
   seleção de destino e revisão.
 - Validador fail-closed: exige UEFI/GPT, pré-detecção no mesmo disco, região
-  livre idêntica à geometria lida, EFI FAT do mesmo disco, confirmação do
-  usuário e reconhecimento da situação do BitLocker.
+  livre idêntica à geometria lida, EFI FAT do mesmo disco com ao menos 100 MiB,
+  confirmação do usuário e reconhecimento da situação do BitLocker.
 - O resultado sempre contém `execution_enabled=false`.
 
 ## Limites da detecção
@@ -41,7 +41,8 @@ confiável e a chave de recuperação esteja disponível.
 3. Não formatar nem modificar partições existentes.
 4. Nunca usar partição NTFS como destino; somente linha Free Space reportada
    pelo parted pode ser considerada.
-5. Exigir no mínimo 40 GiB não alocados e alinhamento de 1 MiB.
+5. Exigir no mínimo 40 GiB não alocados, alinhamento de 1 MiB e EFI com ao
+   menos 100 MiB.
 6. Não escolher automaticamente entre múltiplos volumes NTFS Basic Data.
 7. Não tratar a pré-detecção como autorização para instalar ou alterar o boot.
 8. Exigir seleção explícita e revisão do plano.
