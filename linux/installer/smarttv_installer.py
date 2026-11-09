@@ -129,7 +129,10 @@ def inspect_system() -> dict[str, Any]:
                 ]
                 # More than one NTFS Basic Data volume is ambiguous. Never
                 # guess which one is the Windows system volume.
-                if len(candidates_on_disk) != 1:
+                if not candidates_on_disk:
+                    windows_unmapped_entries.append(line)
+                    continue
+                if len(candidates_on_disk) > 1:
                     windows_ambiguous_entries.append(line)
                     continue
                 volume = candidates_on_disk[0]
