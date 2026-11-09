@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only inventory for the Smart TV OS dual-boot installer."""
+"""Read-only inventory for the Smart TV OS dual-boot installer.
+
+Windows identification here is preliminary evidence only. It is not sufficient
+to authorize a future disk-writing installer: the Windows system volume and
+BitLocker state must be independently verified before any write operation.
+"""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +22,16 @@ MS_BASIC_DATA_GUID = "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 def run_json(command: list[str]) -> dict[str, Any]:
     result = subprocess.run(command, check=True, text=True, capture_output=True)
     return json.loads(result.stdout)
+
+
+def _is_windows_chain(fields: list[str]) -> bool:
+    """Accept only an os-prober Windows chain entry, not arbitrary text matches."""
+    return (
+        len(fields) >= 4
+        and "windows" in fields[1].lower()
+        and fields[2].strip().lower() == "windows"
+        and fields[3].strip().lower() == "chain"
+    )
 
 
 def inspect_system() -> dict[str, Any]:
@@ -50,28 +65,30 @@ def inspect_system() -> dict[str, Any]:
         def inspect_children(items: list[dict[str, Any]]) -> None:
             for item in items:
                 path = item.get("path")
+                parttype = (item.get("parttype") or "").lower()
                 if path:
                     partition_index[path] = {
                         "path": path,
                         "disk_path": disk_path,
                         "fstype": item.get("fstype"),
                         "label": item.get("label"),
-                        "parttype": item.get("parttype"),
+                        "parttype": parttype,
                     }
                 fs = (item.get("fstype") or "").lower()
                 label = (item.get("label") or "").lower()
                 if fs == "ntfs" or "windows" in label or "microsoft" in label:
                     candidate = {
                         "path": path,
-                        "fstype": item.get("fstype"),
+                        "fstype": fs,
                         "label": item.get("label"),
-                        "parttype": (item.get("parttype") or "").lower(),
+                        "parttype": parttype,
                         "disk_path": disk_path,
+                        "size_bytes": item.get("size"),
                     }
                     windows_candidates.append(candidate)
-                    # Recovery partitions and arbitrary NTFS data volumes are
-                    # not accepted as the Windows system-volume evidence.
-                    if fs == "ntfs" and candidate["parttype"] == MS_BASIC_DATA_GUID:
+                    # This is only a volume candidate. It does not prove that
+                    # the volume contains a bootable Windows installation.
+                    if fs == "ntfs" and parttype == MS_BASIC_DATA_GUID:
                         windows_volume_candidates.append(candidate)
                 if fs in {"bitlocker", "bitlk"}:
                     bitlocker_partitions.append(path)
@@ -83,38 +100,65 @@ def inspect_system() -> dict[str, Any]:
     windows_entries: list[str] = []
     windows_installations: list[dict[str, Any]] = []
     windows_unmapped_entries: list[str] = []
-    if shutil.which("os-prober"):
+    windows_ambiguous_entries: list[str] = []
+    os_prober_available = bool(shutil.which("os-prober"))
+    os_prober_succeeded = False
+
+    if os_prober_available:
         probe = subprocess.run(
             ["os-prober"], text=True, capture_output=True, timeout=30
         )
         # Never treat partial stdout from a failed probe as proof of Windows.
-        if probe.returncode == 0:
+        os_prober_succeeded = probe.returncode == 0
+        if os_prober_succeeded:
             for line in probe.stdout.splitlines():
-                if "windows" not in line.lower() and "microsoft" not in line.lower():
-                    continue
                 fields = line.split(":")
-                raw_device = fields[0] if fields else ""
-                # os-prober may append @/path/to/boot. Only the device before
-                # that suffix can be matched against the current lsblk snapshot.
+                if not _is_windows_chain(fields):
+                    continue
+                raw_device = fields[0].strip()
+                # os-prober may append @/path/to/boot.
                 probe_device = raw_device.split("@", 1)[0]
                 partition = partition_index.get(probe_device)
                 if not partition:
                     windows_unmapped_entries.append(line)
                     continue
-                # A boot-manager entry alone is insufficient if this disk has
-                # no NTFS Windows volume in the same inventory snapshot.
-                same_disk_windows_volume = any(
-                    candidate.get("disk_path") == partition["disk_path"]
-                    for candidate in windows_volume_candidates
+
+                candidates_on_disk = [
+                    candidate for candidate in windows_volume_candidates
+                    if candidate.get("disk_path") == partition["disk_path"]
+                ]
+                # More than one NTFS Basic Data volume is ambiguous. Never
+                # guess which one is the Windows system volume.
+                if len(candidates_on_disk) != 1:
+                    windows_ambiguous_entries.append(line)
+                    continue
+                volume = candidates_on_disk[0]
+
+                # The boot-chain partition must be either the actual unique
+                # NTFS Basic Data candidate or a valid FAT EFI System Partition
+                # on the same physical disk. Recovery and arbitrary data
+                # partitions are not accepted as Windows boot evidence.
+                is_same_windows_volume = (
+                    probe_device == volume.get("path")
+                    and partition.get("parttype") == MS_BASIC_DATA_GUID
+                    and (partition.get("fstype") or "").lower() == "ntfs"
                 )
-                if not same_disk_windows_volume:
+                is_efi_boot_partition = (
+                    partition.get("parttype") == EFI_GUID
+                    and (partition.get("fstype") or "").lower() == "vfat"
+                )
+                if not (is_same_windows_volume or is_efi_boot_partition):
                     windows_unmapped_entries.append(line)
                     continue
+
                 windows_entries.append(line)
                 windows_installations.append({
                     "entry": line,
                     "boot_partition_path": probe_device,
+                    "windows_volume_path": volume["path"],
                     "disk_path": partition["disk_path"],
+                    "evidence": "os-prober-windows-chain+single-ntfs-basic-data",
+                    "preliminary_only": True,
                 })
 
     efi_partitions = []
@@ -142,17 +186,24 @@ def inspect_system() -> dict[str, Any]:
     })
     warnings = [
         "Esta etapa apenas inspeciona o computador; nenhuma alteração no disco é permitida.",
-        "BitLocker não pode ser certificado como desativado por esta inspeção; a confirmação no Windows é obrigatória.",
-        "A validação de Windows exige que o os-prober corresponda a uma partição conhecida e a um volume NTFS no mesmo disco.",
+        "A associação os-prober + NTFS único é uma pré-detecção, não prova definitiva de uma instalação Windows funcional.",
+        "Antes de qualquer futura escrita, será necessária verificação somente leitura do conteúdo do volume Windows e da configuração BCD.",
+        "BitLocker não pode ser certificado como desativado por esta inspeção; a confirmação no Windows não substitui uma verificação técnica.",
     ]
     if not uefi:
         warnings.append("Inicialização UEFI não detectada. O instalador deve parar nesta condição.")
+    if not os_prober_available:
+        warnings.append("os-prober não está instalado; Windows não pode ser pré-detectado.")
+    elif not os_prober_succeeded:
+        warnings.append("os-prober falhou; qualquer saída parcial foi ignorada.")
     if not windows_entries:
-        warnings.append("Windows 10/11 não foi confirmado com correspondência entre os-prober e lsblk; não basta encontrar uma partição NTFS.")
+        warnings.append("Nenhuma cadeia Windows foi associada a uma EFI válida ou ao único volume NTFS Basic Data do mesmo disco.")
     if windows_unmapped_entries:
-        warnings.append("Há entradas do os-prober que não puderam ser associadas com segurança a um disco; elas não foram aceitas como confirmação.")
+        warnings.append("Há entradas do os-prober sem associação segura; elas não foram aceitas.")
+    if windows_ambiguous_entries:
+        warnings.append("Há mais de um volume NTFS Basic Data no disco; a associação do Windows é ambígua e foi bloqueada.")
     if windows_candidates and not windows_entries:
-        warnings.append("Há partições NTFS candidatas, mas elas não comprovam uma instalação Windows.")
+        warnings.append("Há partições candidatas, mas elas não comprovam uma instalação Windows.")
     if bitlocker_partitions:
         warnings.append("Foi identificado um volume BitLocker; a instalação deve permanecer bloqueada.")
     if not efi_partitions:
@@ -166,8 +217,11 @@ def inspect_system() -> dict[str, Any]:
         "windows_installations": windows_installations,
         "windows_disk_paths": windows_disk_paths,
         "windows_unmapped_entries": windows_unmapped_entries,
+        "windows_ambiguous_entries": windows_ambiguous_entries,
         "windows_candidates": windows_candidates,
         "windows_volume_candidates": windows_volume_candidates,
+        "os_prober_available": os_prober_available,
+        "os_prober_succeeded": os_prober_succeeded,
         "bitlocker_detected": bool(bitlocker_partitions),
         "bitlocker_partitions": bitlocker_partitions,
         "efi_partitions": efi_partitions,
@@ -196,8 +250,8 @@ def main() -> int:
     else:
         print("SMART TV OS — VERIFICAÇÃO DO COMPUTADOR")
         print(f"Modo: {report['mode']} | UEFI: {'sim' if report['uefi'] else 'não'}")
-        print(f"Windows confirmado: {'sim' if report['windows_detected'] else 'não'}")
-        print(f"Discos com Windows confirmado: {', '.join(report['windows_disk_paths']) or 'nenhum'}")
+        print(f"Pré-detecção Windows: {'sim' if report['windows_detected'] else 'não confirmada'}")
+        print(f"Discos com pré-detecção Windows: {', '.join(report['windows_disk_paths']) or 'nenhum'}")
         print(f"Discos encontrados: {len(report['disks'])}")
         for disk in report["disks"]:
             print(f"  {disk.get('path')} — {disk.get('model') or 'modelo desconhecido'} — {disk.get('size_bytes')} bytes")
