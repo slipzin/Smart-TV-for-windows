@@ -122,6 +122,17 @@ jobs:
               chmod -R a+rwX /workspace/out
             '
 
+      - name: Upload complete ISO as one downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartTV-OS-ISO-single
+          path: |
+            out/SmartTV-OS-live-trixie-amd64.iso
+            out/SmartTV-OS-live-trixie-amd64.iso.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
       - name: Split ISO into downloadable parts (400 MiB each)
         run: |
           set -euo pipefail
