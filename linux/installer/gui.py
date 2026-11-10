@@ -222,7 +222,7 @@ class InstallerWindow(QMainWindow):
         layout.addWidget(self.review_summary)
 
         self.bitlocker_ack = QCheckBox(
-            "Confirmo que verifiquei o BitLocker no Windows, suspendi/desativei a proteção e guardei a chave de recuperação."
+            "Reconheço que o estado do BitLocker não é verificado por esta versão. Esta confirmação é apenas ciência e não autoriza instalação."
         )
         self.bitlocker_ack.setVisible(False)
         layout.addWidget(self.bitlocker_ack)
@@ -409,9 +409,9 @@ class InstallerWindow(QMainWindow):
             root_bytes=self.root_size.value() * GIB,
             efi_partition_path=efi_path,
             windows_present=self.windows_present,
-            windows_confirmed=disk_path in self.windows_disk_paths,
+            windows_pre_detected=disk_path in self.windows_disk_paths,
             bitlocker_detected=self.bitlocker_detected,
-            bitlocker_cleared_by_user=self.bitlocker_ack.isChecked(),
+            bitlocker_acknowledged_by_user=self.bitlocker_ack.isChecked(),
             user_confirmed=self.review_ack.isChecked(),
         )
         try:
@@ -421,8 +421,8 @@ class InstallerWindow(QMainWindow):
             self.validation_label.setStyleSheet("color: #ffb0a8; font-size: 15px;")
             return
         self.validation_label.setText(
-            "PLANO VÁLIDO PARA SIMULAÇÃO. EFI preservada; partições existentes sem alterações. "
-            "A instalação continua desabilitada nesta versão."
+            "PRÉ-PLANO CONSISTENTE (SIMULAÇÃO). EFI não será formatada; partições existentes não serão alteradas. "
+            "Windows/BitLocker não foram verificados e a instalação não está autorizada."
         )
         self.validation_label.setStyleSheet("color: #9fe4c1; font-size: 15px;")
 
