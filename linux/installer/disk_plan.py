@@ -31,9 +31,9 @@ class InstallPlan:
     format_efi: bool = False
     format_existing_partitions: bool = False
     windows_present: bool = False
-    windows_confirmed: bool = False
+    windows_pre_detected: bool = False
     bitlocker_detected: bool = False
-    bitlocker_cleared_by_user: bool = False
+    bitlocker_acknowledged_by_user: bool = False
     user_confirmed: bool = False
 
 
@@ -49,7 +49,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("É proibido formatar a EFI ou partições existentes.")
     if not plan.user_confirmed:
         raise UnsafeInstallPlan("A revisão final do usuário ainda não foi confirmada.")
-    if not plan.windows_confirmed:
+    if not plan.windows_pre_detected:
         raise UnsafeInstallPlan("A pré-detecção Windows não foi associada com segurança; instalação bloqueada.")
     confirmed_windows_disks = {
         item.get("disk_path")
@@ -60,12 +60,14 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan(
             "A pré-detecção Windows não foi associada ao disco selecionado; dual boot neste disco está bloqueado."
         )
-    if plan.windows_present and not plan.bitlocker_cleared_by_user:
+    if plan.windows_present and not plan.bitlocker_acknowledged_by_user:
         raise UnsafeInstallPlan(
-            "BitLocker não foi confirmado como suspenso/desativado. Tenha também a chave de recuperação."
+            "O estado do BitLocker não pode ser verificado nesta versão. Reconheça o aviso; isso não autoriza instalação."
         )
-    if plan.bitlocker_detected and not plan.bitlocker_cleared_by_user:
-        raise UnsafeInstallPlan("Foi detectado um volume BitLocker; instalação bloqueada.")
+    if plan.bitlocker_detected:
+        raise UnsafeInstallPlan(
+            "Foi identificado um volume BitLocker; até sua situação ser verificada de forma confiável, o plano permanece bloqueado."
+        )
     if plan.free_region_start < MIB or plan.free_region_start % MIB != 0:
         raise UnsafeInstallPlan("Início da região livre inválido ou não alinhado a 1 MiB.")
     if plan.free_region_bytes < MIN_ROOT_BYTES:
@@ -110,7 +112,12 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("A partição EFI tem menos de 100 MiB ou tamanho desconhecido; operação bloqueada.")
 
     return {
-        "valid": True,
+        "preflight_valid": True,
+        "validation_scope": "read_only_preflight_simulation",
+        "windows_installation_verified": False,
+        "bitlocker_state_verified": False,
+        "installation_authorized": False,
+        "writes_performed": False,
         "disk": plan.disk_path,
         "partition_table": "gpt",
         "boot_mode": "uefi",
@@ -122,5 +129,5 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         "existing_partitions_modified": False,
         "windows_pre_detection": True,
         "execution_enabled": False,
-        "message": "Pré-plano validado em modo de simulação; escrita continua desabilitada e o Windows ainda requer confirmação adicional.",
+        "message": "Pré-plano coerente apenas para simulação. Windows e BitLocker não foram verificados; nenhuma instalação é autorizada.",
     }
