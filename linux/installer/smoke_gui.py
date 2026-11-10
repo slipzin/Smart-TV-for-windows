@@ -78,7 +78,7 @@ def main() -> int:
     # This is a simulated user acknowledgement only; it does not change disk state.
     window.bitlocker_ack.setChecked(True)
     window.validate_plan()
-    assert "PLANO VÁLIDO" in window.validation_label.text(), window.validation_label.text()
+    assert "PRÉ-PLANO CONSISTENTE" in window.validation_label.text(), window.validation_label.text()
 
     window.close()
     app.quit()
