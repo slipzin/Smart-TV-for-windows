@@ -30,13 +30,18 @@ class DiskPlanValidationTests(unittest.TestCase):
             free_region_start=500 * MIB,
             free_region_bytes=100 * GIB, root_bytes=80 * GIB,
             efi_partition_path="/dev/nvme0n1p1",
-            windows_present=True, windows_confirmed=True,
-            bitlocker_cleared_by_user=True, user_confirmed=True,
+            windows_present=True, windows_pre_detected=True,
+            bitlocker_acknowledged_by_user=True, user_confirmed=True,
         )
 
     def test_valid_plan_is_simulation_only_and_preserves_efi(self):
         result = validate_install_plan(self.plan, self.inventory)
-        self.assertTrue(result["valid"])
+        self.assertTrue(result["preflight_valid"])
+        self.assertEqual(result["validation_scope"], "read_only_preflight_simulation")
+        self.assertFalse(result["windows_installation_verified"])
+        self.assertFalse(result["bitlocker_state_verified"])
+        self.assertFalse(result["installation_authorized"])
+        self.assertFalse(result["writes_performed"])
         self.assertFalse(result["execution_enabled"])
         self.assertFalse(result["efi"]["format"])
         self.assertTrue(result["efi"]["reuse"])
@@ -53,18 +58,25 @@ class DiskPlanValidationTests(unittest.TestCase):
     def test_rejects_unconfirmed_windows_and_bitlocker(self):
         with self.assertRaises(UnsafeInstallPlan):
             validate_install_plan(
-                InstallPlan(**{**self.plan.__dict__, "windows_confirmed": False}),
+                InstallPlan(**{**self.plan.__dict__, "windows_pre_detected": False}),
                 self.inventory,
             )
         with self.assertRaises(UnsafeInstallPlan):
             validate_install_plan(
-                InstallPlan(**{**self.plan.__dict__, "bitlocker_cleared_by_user": False}),
+                InstallPlan(**{**self.plan.__dict__, "bitlocker_acknowledged_by_user": False}),
                 self.inventory,
             )
         with self.assertRaises(UnsafeInstallPlan):
             validate_install_plan(
                 InstallPlan(**{**self.plan.__dict__, "bitlocker_detected": True,
-                               "bitlocker_cleared_by_user": False}),
+                               "bitlocker_acknowledged_by_user": False}),
+                self.inventory,
+            )
+        # A checkbox cannot override a positive BitLocker detection.
+        with self.assertRaisesRegex(UnsafeInstallPlan, "volume BitLocker"):
+            validate_install_plan(
+                InstallPlan(**{**self.plan.__dict__, "bitlocker_detected": True,
+                               "bitlocker_acknowledged_by_user": True}),
                 self.inventory,
             )
 
