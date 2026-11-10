@@ -17,7 +17,14 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 - Validador fail-closed: exige UEFI/GPT, pré-detecção no mesmo disco, região
   livre idêntica à geometria lida, EFI FAT do mesmo disco com ao menos 100 MiB,
   confirmação do usuário e reconhecimento da situação do BitLocker.
-- O resultado sempre contém `execution_enabled=false`.
+- O resultado contém `preflight_valid=true` apenas para indicar coerência do pré-plano,
+  com `validation_scope=read_only_preflight_simulation`. Isso **não** significa
+  que Windows/BCD/BitLocker foram verificados nem que a instalação foi autorizada:
+  `windows_installation_verified=false`, `bitlocker_state_verified=false`,
+  `installation_authorized=false` e `execution_enabled=false`.
+- A confirmação de BitLocker na interface é somente ciência do usuário; não
+  comprova suspensão/desativação. Uma detecção positiva de volume BitLocker
+  bloqueia até mesmo a validação simulada.
 
 ## Limites da detecção
 
