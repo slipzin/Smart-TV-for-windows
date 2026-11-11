@@ -7,8 +7,10 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 
 - Inspeção somente leitura de discos, UEFI, volumes NTFS candidatos, volumes
   BitLocker identificáveis e partições EFI pelo GUID GPT correto.
-- Pré-detecção de Windows usando uma entrada `os-prober` do tipo Windows/chain
-  associada a uma EFI FAT válida ou ao próprio volume NTFS Basic Data.
+- Pré-detecção de Windows usando uma entrada `os-prober` do tipo Windows/efi
+  (UEFI) ou Windows/chain (BIOS), associada a uma EFI FAT válida ou ao próprio
+  volume NTFS Basic Data. Essa associação continua sendo preliminar, não uma
+  prova de instalação funcional.
 - Bloqueio da associação quando existem vários volumes NTFS Basic Data no
   mesmo disco; o assistente não tenta adivinhar qual seria o Windows.
 - Leitura da geometria de espaço não alocado por disco.
@@ -17,6 +19,9 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 - Validador fail-closed: exige UEFI/GPT, pré-detecção no mesmo disco, região
   livre idêntica à geometria lida, EFI FAT do mesmo disco com ao menos 100 MiB,
   confirmação do usuário e reconhecimento da situação do BitLocker.
+- O validador bloqueia também quando o inventário recém-lido contém qualquer
+  indicação de BitLocker, mesmo que um chamador tente passar
+  `bitlocker_detected=false` no plano.
 - O resultado contém `preflight_valid=true` apenas para indicar coerência do pré-plano,
   com `validation_scope=read_only_preflight_simulation`. Isso **não** significa
   que Windows/BCD/BitLocker foram verificados nem que a instalação foi autorizada:
