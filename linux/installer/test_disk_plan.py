@@ -80,6 +80,16 @@ class DiskPlanValidationTests(unittest.TestCase):
                 self.inventory,
             )
 
+    def test_inventory_bitlocker_cannot_be_overridden_by_plan_flags(self):
+        # Even if the caller falsely leaves plan.bitlocker_detected=False,
+        # the fresh inventory must independently fail closed.
+        for extra in (
+            {"bitlocker_detected": True},
+            {"bitlocker_partitions": ["/dev/nvme0n1p4"]},
+        ):
+            with self.subTest(extra=extra), self.assertRaisesRegex(UnsafeInstallPlan, "BitLocker no inventário"):
+                validate_install_plan(self.plan, {**self.inventory, **extra})
+
     def test_rejects_non_uefi_and_small_space(self):
         with self.assertRaises(UnsafeInstallPlan):
             validate_install_plan(
