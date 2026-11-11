@@ -24,13 +24,13 @@ def run_json(command: list[str]) -> dict[str, Any]:
     return json.loads(result.stdout)
 
 
-def _is_windows_chain(fields: list[str]) -> bool:
-    """Accept only an os-prober Windows chain entry, not arbitrary text matches."""
+def _is_windows_boot_entry(fields: list[str]) -> bool:
+    """Accept the standard GRUB os-prober methods used for Windows on BIOS and UEFI."""
     return (
         len(fields) >= 4
         and "windows" in fields[1].lower()
         and fields[2].strip().lower() == "windows"
-        and fields[3].strip().lower() == "chain"
+        and fields[3].strip().lower() in {"chain", "efi"}
     )
 
 
@@ -113,7 +113,7 @@ def inspect_system() -> dict[str, Any]:
         if os_prober_succeeded:
             for line in probe.stdout.splitlines():
                 fields = line.split(":")
-                if not _is_windows_chain(fields):
+                if not _is_windows_boot_entry(fields):
                     continue
                 raw_device = fields[0].strip()
                 # os-prober may append @/path/to/boot.
@@ -160,7 +160,7 @@ def inspect_system() -> dict[str, Any]:
                     "boot_partition_path": probe_device,
                     "windows_volume_path": volume["path"],
                     "disk_path": partition["disk_path"],
-                    "evidence": "os-prober-windows-chain+single-ntfs-basic-data",
+                    "evidence": "os-prober-windows-efi-or-chain+single-ntfs-basic-data",
                     "preliminary_only": True,
                 })
 
@@ -200,7 +200,7 @@ def inspect_system() -> dict[str, Any]:
     elif not os_prober_succeeded:
         warnings.append("os-prober falhou; qualquer saída parcial foi ignorada.")
     if not windows_entries:
-        warnings.append("Nenhuma cadeia Windows foi associada a uma EFI válida ou ao único volume NTFS Basic Data do mesmo disco.")
+        warnings.append("Nenhuma entrada Windows (EFI/chain) foi associada a uma EFI válida ou ao único volume NTFS Basic Data do mesmo disco.")
     if windows_unmapped_entries:
         warnings.append("Há entradas do os-prober sem associação segura; elas não foram aceitas.")
     if windows_ambiguous_entries:
