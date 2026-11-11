@@ -64,9 +64,13 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan(
             "O estado do BitLocker não pode ser verificado nesta versão. Reconheça o aviso; isso não autoriza instalação."
         )
-    if plan.bitlocker_detected:
+    if (
+        plan.bitlocker_detected
+        or inventory.get("bitlocker_detected")
+        or inventory.get("bitlocker_partitions")
+    ):
         raise UnsafeInstallPlan(
-            "Foi identificado um volume BitLocker; até sua situação ser verificada de forma confiável, o plano permanece bloqueado."
+            "Foi identificado um volume BitLocker no inventário ou no plano; até sua situação ser verificada de forma confiável, o plano permanece bloqueado."
         )
     if plan.free_region_start < MIB or plan.free_region_start % MIB != 0:
         raise UnsafeInstallPlan("Início da região livre inválido ou não alinhado a 1 MiB.")
