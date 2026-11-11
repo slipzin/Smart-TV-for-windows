@@ -70,6 +70,21 @@ class InstallerPreflightTests(unittest.TestCase):
     @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
     @patch("installer.smarttv_installer.Path.exists", return_value=True)
     @patch("installer.smarttv_installer.subprocess.run")
+    def test_accepts_uefi_windows_boot_manager_entry(self, run, exists, which):
+        run.side_effect = [
+            result(json.dumps(LSBLK)),
+            result("/dev/nvme0n1p1:Windows Boot Manager:Windows:efi\\n"),
+        ]
+        report = inspect_system()
+        self.assertEqual(report["windows_disk_paths"], ["/dev/nvme0n1"])
+        evidence = report["windows_installations"][0]
+        self.assertEqual(evidence["boot_partition_path"], "/dev/nvme0n1p1")
+        self.assertEqual(evidence["windows_volume_path"], "/dev/nvme0n1p3")
+        self.assertIn("efi-or-chain", evidence["evidence"])
+
+    @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
+    @patch("installer.smarttv_installer.Path.exists", return_value=True)
+    @patch("installer.smarttv_installer.subprocess.run")
     def test_multiple_ntfs_basic_data_volumes_make_windows_association_ambiguous(self, run, exists, which):
         ambiguous = json.loads(json.dumps(LSBLK))
         extra = dict(ambiguous["blockdevices"][0]["children"][1])
@@ -144,7 +159,7 @@ class InstallerPreflightTests(unittest.TestCase):
     @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
     @patch("installer.smarttv_installer.Path.exists", return_value=True)
     @patch("installer.smarttv_installer.subprocess.run")
-    def test_rejects_windows_text_without_chain_method(self, run, exists, which):
+    def test_rejects_windows_text_with_unsupported_probe_method(self, run, exists, which):
         run.side_effect = [
             result(json.dumps(LSBLK)),
             result("/dev/nvme0n1p3:Windows data volume:Windows:blob\n"),
