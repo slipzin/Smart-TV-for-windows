@@ -21,7 +21,7 @@ class WorkflowActionVersionTests(unittest.TestCase):
         for workflow in WORKFLOWS:
             source = workflow.read_text(encoding="utf-8")
             for action, version in re.findall(
-                r"^\s*(?:-\s*)?uses:\s*([A-Za-z0-9_.-]+)@(v[0-9]+)\s*$",
+                r"^\s*(?:-\s*)?uses:\s*([A-Za-z0-9_./-]+)@(v[0-9]+)\s*$",
                 source,
                 flags=re.MULTILINE,
             ):
