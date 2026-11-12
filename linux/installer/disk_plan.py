@@ -16,7 +16,7 @@ EFI_GUID = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
 
 
 class UnsafeInstallPlan(ValueError):
-    """Raised when a proposed disk plan cannot be proven safe."""
+    """Raised when a proposed plan cannot be proven safe."""
 
 
 @dataclass(frozen=True)
@@ -38,12 +38,12 @@ class InstallPlan:
 
 
 def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[str, Any]:
-    """Validate a plan against a fresh inventory and exact free-space geometry."""
+    """Validate a plan against fresh inventory and cross-checked disk geometry."""
     if plan.boot_mode.lower() != "uefi":
         raise UnsafeInstallPlan("Somente inicialização UEFI é aceita nesta versão.")
     if plan.table.lower() != "gpt":
         raise UnsafeInstallPlan("O disco de destino precisa usar GPT.")
-    if not plan.disk_path.startswith("/dev/"):
+    if not plan.disk_path.startswith("/dev/") or any(ch.isspace() for ch in plan.disk_path):
         raise UnsafeInstallPlan("Dispositivo de destino inválido.")
     if plan.format_efi or plan.format_existing_partitions:
         raise UnsafeInstallPlan("É proibido formatar a EFI ou partições existentes.")
@@ -51,6 +51,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("A revisão final do usuário ainda não foi confirmada.")
     if not plan.windows_pre_detected:
         raise UnsafeInstallPlan("A pré-detecção Windows não foi associada com segurança; instalação bloqueada.")
+
     confirmed_windows_disks = {
         item.get("disk_path")
         for item in inventory.get("windows_installations", [])
@@ -60,6 +61,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan(
             "A pré-detecção Windows não foi associada ao disco selecionado; dual boot neste disco está bloqueado."
         )
+
     if plan.windows_present and not plan.bitlocker_acknowledged_by_user:
         raise UnsafeInstallPlan(
             "O estado do BitLocker não pode ser verificado nesta versão. Reconheça o aviso; isso não autoriza instalação."
@@ -72,6 +74,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan(
             "Foi identificado um volume BitLocker no inventário ou no plano; até sua situação ser verificada de forma confiável, o plano permanece bloqueado."
         )
+
     if plan.free_region_start < MIB or plan.free_region_start % MIB != 0:
         raise UnsafeInstallPlan("Início da região livre inválido ou não alinhado a 1 MiB.")
     if plan.free_region_bytes < MIN_ROOT_BYTES:
@@ -87,17 +90,22 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         raise UnsafeInstallPlan("Disco não encontrado na inspeção atual.")
     if (disk.get("partition_table") or "").lower() != "gpt":
         raise UnsafeInstallPlan("A tabela de partições mudou desde a inspeção.")
+    disk_size_bytes = disk.get("size_bytes")
+    if not isinstance(disk_size_bytes, int) or disk_size_bytes <= 0:
+        raise UnsafeInstallPlan("O tamanho do disco não foi confirmado pelo lsblk.")
 
     exact_region = next(
         (region for region in inventory.get("free_regions", [])
          if region.get("disk_path") == plan.disk_path
+         and region.get("disk_size_bytes") == disk_size_bytes
          and region.get("start_bytes") == plan.free_region_start
-         and region.get("size_bytes") == plan.free_region_bytes),
+         and region.get("size_bytes") == plan.free_region_bytes
+         and region.get("end_bytes") == plan.free_region_start + plan.free_region_bytes - 1),
         None,
     )
     if exact_region is None:
         raise UnsafeInstallPlan(
-            "A região livre não corresponde à geometria lida pelo parted nesta inspeção."
+            "A região livre não corresponde à geometria confirmada pelo parted e ao tamanho do disco lido pelo lsblk."
         )
 
     efi = next(
@@ -123,6 +131,7 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         "installation_authorized": False,
         "writes_performed": False,
         "disk": plan.disk_path,
+        "disk_size_bytes": disk_size_bytes,
         "partition_table": "gpt",
         "boot_mode": "uefi",
         "target": "unallocated_space_only",
