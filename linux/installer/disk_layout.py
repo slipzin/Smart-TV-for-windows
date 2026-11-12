@@ -8,7 +8,7 @@ import subprocess
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-_BYTE_VALUE = re.compile(r"^([0-9]+(?:\\.[0-9]+)?)B$", re.IGNORECASE)
+_BYTE_VALUE = re.compile(r"^([0-9]+(?:\.[0-9]+)?)B$", re.IGNORECASE)
 
 
 def _bytes(value: str) -> int | None:
@@ -56,9 +56,9 @@ def parse_parted_free_regions(output: str, disk_path: str) -> list[dict[str, Any
         fields = line.rstrip(";").split(":")
         if not fields or not fields[0].isdigit():
             continue
-
         if len(fields) < 5:
             raise ValueError("Linha de partição do parted incompleta.")
+
         description = ":".join(fields[4:]).strip().lower()
         if "free space" not in description and description != "free":
             continue
