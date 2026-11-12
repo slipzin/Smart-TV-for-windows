@@ -13,12 +13,19 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
   prova de instalação funcional.
 - Bloqueio da associação quando existem vários volumes NTFS Basic Data no
   mesmo disco; o assistente não tenta adivinhar qual seria o Windows.
-- Leitura da geometria de espaço não alocado por disco.
+- Leitura da geometria de espaço não alocado por disco com `parted` em modo
+  somente leitura. O parser exige o cabeçalho do dispositivo e seu tamanho,
+  rejeita regiões fora dos limites físicos, tamanhos inconsistentes, cabeçalhos
+  duplicados e regiões sobrepostas.
+- Cruzamento obrigatório do tamanho do disco informado por `parted` com o
+  tamanho em bytes retornado por `lsblk`; divergência ou campo ausente bloqueia
+  o pré-plano.
 - Interface Qt em tela maximizada, em português, com boas-vindas, diagnóstico,
   seleção de destino e revisão.
 - Validador fail-closed: exige UEFI/GPT, pré-detecção no mesmo disco, região
-  livre idêntica à geometria lida, EFI FAT do mesmo disco com ao menos 100 MiB,
-  confirmação do usuário e reconhecimento da situação do BitLocker.
+  livre idêntica à geometria lida, tamanho de disco coincidente entre duas
+  ferramentas, EFI FAT do mesmo disco com ao menos 100 MiB, confirmação do
+  usuário e reconhecimento da situação do BitLocker.
 - O validador bloqueia também quando o inventário recém-lido contém qualquer
   indicação de BitLocker, mesmo que um chamador tente passar
   `bitlocker_detected=false` no plano.
