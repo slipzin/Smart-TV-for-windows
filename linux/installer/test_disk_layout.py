@@ -38,11 +38,16 @@ class DiskLayoutTests(unittest.TestCase):
 
     def test_rejects_missing_or_invalid_disk_header(self):
         with self.assertRaisesRegex(ValueError, "cabeçalho"):
-            parse_parted_free_regions(SAMPLE.splitlines()[-1], DISK)
+            parse_parted_free_regions("BYT;\n", DISK)
         for size in ("0B", "unknown", "512110190592.5B"):
             header = HEADER.replace(f"{DISK_SIZE}B", size)
             with self.subTest(size=size), self.assertRaisesRegex(ValueError, "tamanho de disco válido"):
                 parse_parted_free_regions("BYT;\n" + header, DISK)
+
+    def test_rejects_free_space_row_before_disk_header(self):
+        row = "3:1000000B:2000000B:1000001B:Free Space;"
+        with self.assertRaisesRegex(ValueError, "antes de confirmar o disco"):
+            parse_parted_free_regions("BYT;\n" + row + "\n" + HEADER, DISK)
 
     def test_rejects_fractional_or_malformed_free_space_rows(self):
         row = "3:1000000.5B:2000000B:1000000B:Free Space;"
@@ -61,8 +66,9 @@ class DiskLayoutTests(unittest.TestCase):
 
     def test_rejects_overlapping_free_regions(self):
         row = "3:1000000B:2000000B:1000001B:Free Space;"
+        first_free_row = SAMPLE.splitlines()[2]
         with self.assertRaisesRegex(ValueError, "sobrepostas"):
-            parse_parted_free_regions("BYT;\n" + HEADER + "\n" + SAMPLE.splitlines()[2] + "\n" + row, DISK)
+            parse_parted_free_regions("BYT;\n" + HEADER + "\n" + first_free_row + "\n" + row, DISK)
 
     def test_rejects_duplicate_disk_headers(self):
         with self.assertRaisesRegex(ValueError, "mais de um cabeçalho"):
