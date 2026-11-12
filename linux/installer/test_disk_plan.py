@@ -5,18 +5,29 @@ from installer.disk_plan import (
 )
 
 
+DISK_SIZE = 512_000_000_000
+FREE_START = 500 * MIB
+FREE_SIZE = 100 * GIB
+
+
 class DiskPlanValidationTests(unittest.TestCase):
     def setUp(self):
         self.inventory = {
-            "disks": [{"path": "/dev/nvme0n1", "partition_table": "gpt"}],
+            "disks": [{
+                "path": "/dev/nvme0n1",
+                "partition_table": "gpt",
+                "size_bytes": DISK_SIZE,
+            }],
             "efi_partitions": [{
                 "path": "/dev/nvme0n1p1", "disk_path": "/dev/nvme0n1",
                 "fstype": "vfat", "parttype": EFI_GUID, "size_bytes": 300 * MIB,
             }],
             "free_regions": [{
                 "disk_path": "/dev/nvme0n1",
-                "start_bytes": 500 * MIB,
-                "size_bytes": 100 * GIB,
+                "disk_size_bytes": DISK_SIZE,
+                "start_bytes": FREE_START,
+                "end_bytes": FREE_START + FREE_SIZE - 1,
+                "size_bytes": FREE_SIZE,
             }],
             "windows_installations": [{
                 "boot_partition_path": "/dev/nvme0n1p1",
@@ -27,8 +38,8 @@ class DiskPlanValidationTests(unittest.TestCase):
         }
         self.plan = InstallPlan(
             disk_path="/dev/nvme0n1", table="gpt", boot_mode="uefi",
-            free_region_start=500 * MIB,
-            free_region_bytes=100 * GIB, root_bytes=80 * GIB,
+            free_region_start=FREE_START,
+            free_region_bytes=FREE_SIZE, root_bytes=80 * GIB,
             efi_partition_path="/dev/nvme0n1p1",
             windows_present=True, windows_pre_detected=True,
             bitlocker_acknowledged_by_user=True, user_confirmed=True,
@@ -46,6 +57,7 @@ class DiskPlanValidationTests(unittest.TestCase):
         self.assertFalse(result["efi"]["format"])
         self.assertTrue(result["efi"]["reuse"])
         self.assertEqual(result["efi"]["size_bytes"], 300 * MIB)
+        self.assertEqual(result["disk_size_bytes"], DISK_SIZE)
         self.assertFalse(result["existing_partitions_modified"])
 
     def test_rejects_formatting_efi(self):
@@ -72,7 +84,6 @@ class DiskPlanValidationTests(unittest.TestCase):
                                "bitlocker_acknowledged_by_user": False}),
                 self.inventory,
             )
-        # A checkbox cannot override a positive BitLocker detection.
         with self.assertRaisesRegex(UnsafeInstallPlan, "volume BitLocker"):
             validate_install_plan(
                 InstallPlan(**{**self.plan.__dict__, "bitlocker_detected": True,
@@ -81,8 +92,6 @@ class DiskPlanValidationTests(unittest.TestCase):
             )
 
     def test_inventory_bitlocker_cannot_be_overridden_by_plan_flags(self):
-        # Even if the caller falsely leaves plan.bitlocker_detected=False,
-        # the fresh inventory must independently fail closed.
         for extra in (
             {"bitlocker_detected": True},
             {"bitlocker_partitions": ["/dev/nvme0n1p4"]},
@@ -109,6 +118,20 @@ class DiskPlanValidationTests(unittest.TestCase):
                 self.inventory,
             )
 
+    def test_rejects_lsblk_parted_disk_size_mismatch(self):
+        disk = dict(self.inventory["disks"][0])
+        disk["size_bytes"] -= 1
+        inventory = {**self.inventory, "disks": [disk]}
+        with self.assertRaisesRegex(UnsafeInstallPlan, "geometria confirmada"):
+            validate_install_plan(self.plan, inventory)
+
+    def test_rejects_inconsistent_free_region_end(self):
+        region = dict(self.inventory["free_regions"][0])
+        region["end_bytes"] -= 1
+        inventory = {**self.inventory, "free_regions": [region]}
+        with self.assertRaisesRegex(UnsafeInstallPlan, "geometria confirmada"):
+            validate_install_plan(self.plan, inventory)
+
     def test_rejects_efi_from_another_disk(self):
         other = {"efi_partitions": [{
             "path": "/dev/sdb1", "disk_path": "/dev/sdb",
@@ -131,15 +154,19 @@ class DiskPlanValidationTests(unittest.TestCase):
 
     def test_rejects_target_disk_without_pre_detected_windows(self):
         other_disk = {
-            "disks": [{"path": "/dev/sdb", "partition_table": "gpt"}],
+            "disks": [{
+                "path": "/dev/sdb", "partition_table": "gpt",
+                "size_bytes": DISK_SIZE,
+            }],
             "efi_partitions": [{
                 "path": "/dev/sdb1", "disk_path": "/dev/sdb",
                 "fstype": "vfat", "parttype": EFI_GUID, "size_bytes": 300 * MIB,
             }],
             "free_regions": [{
-                "disk_path": "/dev/sdb",
-                "start_bytes": 500 * MIB,
-                "size_bytes": 100 * GIB,
+                "disk_path": "/dev/sdb", "disk_size_bytes": DISK_SIZE,
+                "start_bytes": FREE_START,
+                "end_bytes": FREE_START + FREE_SIZE - 1,
+                "size_bytes": FREE_SIZE,
             }],
         }
         inventory = {**self.inventory, **other_disk}
