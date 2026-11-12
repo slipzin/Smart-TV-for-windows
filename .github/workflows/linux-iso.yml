@@ -37,7 +37,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Check out selected branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: feature/linux-dual-boot-foundation
 
@@ -107,7 +107,6 @@ jobs:
                 exit 1
               fi
               sha256sum "${ARCHIVE_FILES[@]}" > "$ARCHIVE.sha256"
-              # Verify the source ISO and every 7z volume before upload.
               sha256sum -c "$ISO.sha256"
               sha256sum -c "$ARCHIVE.sha256"
               "$SEVENZIP" t -y "${ARCHIVE_FILES[0]}"
@@ -116,14 +115,11 @@ jobs:
               echo "7z volume SHA-256:"
               cat "$ARCHIVE.sha256"
               ls -lh "$ISO" "$ISO.sha256" "$ARCHIVE.sha256" "${ARCHIVE_FILES[@]}"
-
-              # The build runs as root inside Docker. Change permissions before
-              # leaving the container so the hosted runner can split/upload files.
               chmod -R a+rwX /workspace/out
             '
 
       - name: Upload complete ISO as one downloadable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SmartTV-OS-ISO-single
           path: |
@@ -146,7 +142,7 @@ jobs:
           echo "Reassembled ISO SHA-256 verified: $REASSEMBLED_ISO_SHA"
 
       - name: Upload ISO parts (400 MiB each)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SmartTV-OS-ISO-parts
           path: out/iso-parts/SmartTV-OS-live-trixie-amd64.iso.part-*
@@ -155,7 +151,7 @@ jobs:
           retention-days: 30
 
       - name: Upload 7z archive and checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SmartTV-OS-7z-archive
           path: |
@@ -163,8 +159,9 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
       - name: Upload ISO checksums and part manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SmartTV-OS-ISO-checksums
           path: |
