@@ -18,6 +18,7 @@ from installer.disk_plan import EFI_GUID, GIB
 def main() -> int:
     region = {
         "disk_path": "/dev/nvme0n1",
+        "disk_size_bytes": 512 * GIB,
         "start_bytes": 512 * 1024 * 1024,
         "end_bytes": 512 * 1024 * 1024 + 100 * GIB - 1,
         "size_bytes": 100 * GIB,
