@@ -73,7 +73,7 @@ class InstallerPreflightTests(unittest.TestCase):
     def test_accepts_uefi_windows_boot_manager_entry(self, run, exists, which):
         run.side_effect = [
             result(json.dumps(LSBLK)),
-            result("/dev/nvme0n1p1:Windows Boot Manager:Windows:efi\\n"),
+            result("/dev/nvme0n1p1:Windows Boot Manager:Windows:efi\n"),
         ]
         report = inspect_system()
         self.assertEqual(report["windows_disk_paths"], ["/dev/nvme0n1"])
