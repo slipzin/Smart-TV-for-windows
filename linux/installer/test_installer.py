@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 
 from installer.smarttv_installer import (
-    EFI_GUID, MS_BASIC_DATA_GUID, inspect_system,
+    EFI_GUID, MS_BASIC_DATA_GUID, inspect_system, run_json,
 )
 
 
@@ -28,6 +28,16 @@ def result(stdout="", stderr="", returncode=0):
     })()
 
 
+class RunJsonTests(unittest.TestCase):
+    @patch("installer.smarttv_installer.subprocess.run")
+    def test_inventory_command_has_timeout_and_c_locale(self, run):
+        run.return_value = result('{"blockdevices": []}')
+        self.assertEqual(run_json(["lsblk"]), {"blockdevices": []})
+        self.assertEqual(run.call_args.kwargs["timeout"], 20)
+        self.assertEqual(run.call_args.kwargs["env"]["LC_ALL"], "C")
+        self.assertEqual(run.call_args.kwargs["env"]["LANG"], "C")
+
+
 class InstallerPreflightTests(unittest.TestCase):
     @patch("installer.smarttv_installer.shutil.which", return_value="/usr/bin/lsblk")
     @patch("installer.smarttv_installer.Path.exists", return_value=True)
@@ -38,6 +48,14 @@ class InstallerPreflightTests(unittest.TestCase):
             result("/dev/nvme0n1p3:Windows 11:Windows:chain\n"),
         ]
         report = inspect_system()
+        self.assertEqual(
+            [call.args[0][0] for call in run.call_args_list],
+            ["lsblk", "os-prober"],
+        )
+        self.assertEqual(run.call_args_list[0].kwargs["timeout"], 20)
+        self.assertEqual(run.call_args_list[1].kwargs["timeout"], 30)
+        self.assertEqual(run.call_args_list[1].kwargs["env"]["LC_ALL"], "C")
+        self.assertEqual(run.call_args_list[1].kwargs["env"]["LANG"], "C")
         self.assertTrue(report["uefi"])
         self.assertEqual(len(report["disks"]), 1)
         self.assertEqual(report["efi_partitions"][0]["path"], "/dev/nvme0n1p1")
