@@ -7,6 +7,9 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 
 - Inspeção somente leitura de discos, UEFI, volumes NTFS candidatos, volumes
   BitLocker identificáveis e partições EFI pelo GUID GPT correto.
+- Consultas `lsblk`, `os-prober` e `parted` usam localidade C e limites de
+  tempo; timeout ou falha interrompe a pré-inspeção em vez de reutilizar saída
+  parcial ou assumir que o disco está seguro.
 - Pré-detecção de Windows usando uma entrada `os-prober` do tipo Windows/efi
   (UEFI) ou Windows/chain (BIOS), associada a uma EFI FAT válida ou ao próprio
   volume NTFS Basic Data. Essa associação continua sendo preliminar, não uma
