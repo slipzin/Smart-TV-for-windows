@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -19,8 +20,22 @@ EFI_GUID = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
 MS_BASIC_DATA_GUID = "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 
 
+def _c_locale_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env.update({"LC_ALL": "C", "LANG": "C"})
+    return env
+
+
 def run_json(command: list[str]) -> dict[str, Any]:
-    result = subprocess.run(command, check=True, text=True, capture_output=True)
+    """Run a bounded read-only inventory command with deterministic output."""
+    result = subprocess.run(
+        command,
+        check=True,
+        text=True,
+        capture_output=True,
+        timeout=20,
+        env=_c_locale_env(),
+    )
     return json.loads(result.stdout)
 
 
@@ -106,7 +121,11 @@ def inspect_system() -> dict[str, Any]:
 
     if os_prober_available:
         probe = subprocess.run(
-            ["os-prober"], text=True, capture_output=True, timeout=30
+            ["os-prober"],
+            text=True,
+            capture_output=True,
+            timeout=30,
+            env=_c_locale_env(),
         )
         # Never treat partial stdout from a failed probe as proof of Windows.
         os_prober_succeeded = probe.returncode == 0
