@@ -397,32 +397,92 @@ class InstallerWindow(QMainWindow):
         if not disk_path or not region or not efi_path:
             QMessageBox.warning(self, "Plano incompleto", "Selecione disco, espaço livre e partição EFI.")
             return
-        disk = next((d for d in self.inventory.get("disks", []) if d.get("path") == disk_path), {})
-        inventory = dict(self.inventory)
-        inventory["free_regions"] = [region]
-        plan = InstallPlan(
-            disk_path=disk_path,
-            table=disk.get("partition_table") or "",
-            boot_mode="uefi" if self.inventory.get("uefi") else "legacy",
-            free_region_start=region["start_bytes"],
-            free_region_bytes=region["size_bytes"],
-            root_bytes=self.root_size.value() * GIB,
-            efi_partition_path=efi_path,
-            windows_present=self.windows_present,
-            windows_pre_detected=disk_path in self.windows_disk_paths,
-            bitlocker_detected=self.bitlocker_detected,
-            bitlocker_acknowledged_by_user=self.bitlocker_ack.isChecked(),
-            user_confirmed=self.review_ack.isChecked(),
-        )
+        if not self.review_ack.isChecked():
+            self.validation_label.setText(
+                "PLANO BLOQUEADO: confirme a revisão final antes de validar a simulação."
+            )
+            self.validation_label.setStyleSheet("color: #ffb0a8; font-size: 15px;")
+            return
+
         try:
-            result = validate_install_plan(plan, inventory)
+            # Re-read every safety-relevant input immediately before validating.
+            # This is still read-only and does not authorize a future write.
+            fresh_inventory = inspect_system()
+            if not fresh_inventory.get("uefi"):
+                raise UnsafeInstallPlan("A inicialização UEFI não foi confirmada na reinspeção.")
+            fresh_disk = next(
+                (item for item in fresh_inventory.get("disks", [])
+                 if item.get("path") == disk_path),
+                None,
+            )
+            if not fresh_disk:
+                raise UnsafeInstallPlan("O disco selecionado não aparece na reinspeção atual.")
+            if (fresh_disk.get("partition_table") or "").lower() != "gpt":
+                raise UnsafeInstallPlan("A tabela GPT do disco não foi confirmada novamente.")
+
+            fresh_regions = inspect_free_regions(disk_path)
+            region_keys = (
+                "disk_path", "disk_size_bytes", "start_bytes", "end_bytes", "size_bytes",
+            )
+            matching_region = next(
+                (candidate for candidate in fresh_regions
+                 if all(candidate.get(key) == region.get(key) for key in region_keys)),
+                None,
+            )
+            if matching_region is None:
+                raise UnsafeInstallPlan(
+                    "A região não alocada mudou desde a seleção. Volte, atualize a inspeção e revise o plano novamente."
+                )
+
+            fresh_efi = next(
+                (item for item in fresh_inventory.get("efi_partitions", [])
+                 if item.get("path") == efi_path and item.get("disk_path") == disk_path),
+                None,
+            )
+            if fresh_efi is None:
+                raise UnsafeInstallPlan(
+                    "A partição EFI selecionada não foi confirmada novamente no mesmo disco."
+                )
+
+            fresh_inventory["free_regions"] = fresh_regions
+            self.inventory = fresh_inventory
+            self.windows_disk_paths = set(fresh_inventory.get("windows_disk_paths", []))
+            self.windows_present = bool(
+                fresh_inventory.get("windows_detected")
+                or fresh_inventory.get("windows_candidates")
+            )
+            self.bitlocker_detected = bool(fresh_inventory.get("bitlocker_detected"))
+
+            plan = InstallPlan(
+                disk_path=disk_path,
+                table=fresh_disk.get("partition_table") or "",
+                boot_mode="uefi",
+                free_region_start=matching_region["start_bytes"],
+                free_region_bytes=matching_region["size_bytes"],
+                root_bytes=self.root_size.value() * GIB,
+                efi_partition_path=efi_path,
+                windows_present=self.windows_present,
+                windows_pre_detected=disk_path in self.windows_disk_paths,
+                bitlocker_detected=self.bitlocker_detected,
+                bitlocker_acknowledged_by_user=self.bitlocker_ack.isChecked(),
+                user_confirmed=self.review_ack.isChecked(),
+            )
+            result = validate_install_plan(plan, fresh_inventory)
         except UnsafeInstallPlan as exc:
             self.validation_label.setText("PLANO BLOQUEADO: " + str(exc))
             self.validation_label.setStyleSheet("color: #ffb0a8; font-size: 15px;")
             return
+        except Exception as exc:
+            self.validation_label.setText(
+                "PLANO BLOQUEADO: a reinspeção somente leitura falhou: " + str(exc)
+            )
+            self.validation_label.setStyleSheet("color: #ffb0a8; font-size: 15px;")
+            return
+
         self.validation_label.setText(
-            "PRÉ-PLANO CONSISTENTE (SIMULAÇÃO). EFI não será formatada; partições existentes não serão alteradas. "
-            "Windows/BitLocker não foram verificados e a instalação não está autorizada."
+            "PRÉ-PLANO CONSISTENTE (SIMULAÇÃO). A geometria, o Windows e a EFI foram relidos; "
+            "isso não verifica Windows/BCD/BitLocker nem autoriza instalação. "
+            "EFI não será formatada e partições existentes não serão alteradas."
         )
         self.validation_label.setStyleSheet("color: #9fe4c1; font-size: 15px;")
 
