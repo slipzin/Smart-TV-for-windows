@@ -480,8 +480,8 @@ class InstallerWindow(QMainWindow):
             return
 
         self.validation_label.setText(
-            "PRÉ-PLANO CONSISTENTE (SIMULAÇÃO). A geometria, o Windows e a EFI foram relidos; "
-            "isso não verifica Windows/BCD/BitLocker nem autoriza instalação. "
+            "PRÉ-PLANO CONSISTENTE (SIMULAÇÃO). O inventário preliminar, a geometria e a EFI foram relidos; "
+            "o conteúdo do Windows, o BCD e o estado do BitLocker não foram verificados, e a instalação não está autorizada. "
             "EFI não será formatada e partições existentes não serão alteradas."
         )
         self.validation_label.setStyleSheet("color: #9fe4c1; font-size: 15px;")
