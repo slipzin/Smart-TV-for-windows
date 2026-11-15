@@ -23,6 +23,16 @@ um plano de dual boot. **Ainda não instala o sistema no disco.**
 - Cruzamento obrigatório do tamanho do disco informado por `parted` com o
   tamanho em bytes retornado por `lsblk`; divergência ou campo ausente bloqueia
   o pré-plano.
+- Ao solicitar a validação da revisão, o assistente repete a inspeção
+  somente leitura (lsblk/os-prober e parted) e exige que o disco, a EFI
+  e todos os limites da região livre coincidam exatamente com a seleção
+  anterior. Se a geometria mudar, a validação é bloqueada e o usuário precisa
+  atualizar e revisar o plano.
+- Essa reinspeção reduz o risco de um plano obsoleto, mas não é uma operação
+  atômica nem uma autorização para escrita. Qualquer futuro mecanismo de
+  instalação deverá repetir as verificações imediatamente antes de cada
+  mutação e manter a execução desabilitada enquanto Windows/BCD/BitLocker não
+  forem verificados de forma independente.
 - Interface Qt em tela maximizada, em português, com boas-vindas, diagnóstico,
   seleção de destino e revisão.
 - Validador fail-closed: exige UEFI/GPT, pré-detecção no mesmo disco, região
