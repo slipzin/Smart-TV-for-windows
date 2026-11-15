@@ -52,8 +52,19 @@ def main() -> int:
     }
 
     # Keep the smoke test deterministic and ensure it never probes real disks.
+    state = {"stale_geometry": False, "region_reads": 0}
     gui.inspect_system = lambda: inventory
-    gui.inspect_free_regions = lambda _disk: [region]
+
+    def fake_inspect_free_regions(_disk):
+        state["region_reads"] += 1
+        if state["stale_geometry"]:
+            changed = dict(region)
+            changed["start_bytes"] += 1024 * 1024
+            changed["end_bytes"] += 1024 * 1024
+            return [changed]
+        return [region]
+
+    gui.inspect_free_regions = fake_inspect_free_regions
 
     app = QApplication([])
     window = gui.InstallerWindow()
@@ -80,6 +91,12 @@ def main() -> int:
     window.bitlocker_ack.setChecked(True)
     window.validate_plan()
     assert "PRÉ-PLANO CONSISTENTE" in window.validation_label.text(), window.validation_label.text()
+
+    # A second read-only geometry check must reject a region changed after review.
+    state["stale_geometry"] = True
+    window.validate_plan()
+    assert "região não alocada mudou" in window.validation_label.text().lower(), window.validation_label.text()
+    assert state["region_reads"] == 4, state
 
     window.close()
     app.quit()
