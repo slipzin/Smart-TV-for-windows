@@ -93,10 +93,13 @@ def main() -> int:
     assert "PRÉ-PLANO CONSISTENTE" in window.validation_label.text(), window.validation_label.text()
 
     # A second read-only geometry check must reject a region changed after review.
+    # Compare against the current count instead of assuming how many initial
+    # reads Qt signal delivery caused before the final review action.
+    reads_before_stale_check = state["region_reads"]
     state["stale_geometry"] = True
     window.validate_plan()
     assert "região não alocada mudou" in window.validation_label.text().lower(), window.validation_label.text()
-    assert state["region_reads"] == 4, state
+    assert state["region_reads"] == reads_before_stale_check + 1, state
 
     window.close()
     app.quit()
