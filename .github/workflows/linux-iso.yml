@@ -24,8 +24,8 @@ on:
         default: 'v0.1.0-alpha.1'
 
 concurrency:
-  group: smarttv-linux-iso-${{ github.ref }}
-  cancel-in-progress: true
+  group: smarttv-linux-iso-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -39,7 +39,7 @@ jobs:
       - name: Check out selected branch
         uses: actions/checkout@v7
         with:
-          ref: feature/linux-dual-boot-foundation
+          ref: ${{ github.sha }}
 
       - name: Build ISO and create 7z archive in Debian 13 container
         run: |

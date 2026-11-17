@@ -36,6 +36,13 @@ class WorkflowActionVersionTests(unittest.TestCase):
                     f"{action} must use {expected}; found {seen[action]}",
                 )
 
+
+    def test_iso_workflow_builds_exact_event_commit_without_cancelling_other_commits(self):
+        source = (ROOT / ".github" / "workflows" / "linux-iso.yml").read_text(encoding="utf-8")
+        self.assertIn("ref: ${{ github.sha }}", source)
+        self.assertIn("group: smarttv-linux-iso-${{ github.ref }}-${{ github.sha }}", source)
+        self.assertIn("cancel-in-progress: false", source)
+
     def test_iso_workflow_uploads_all_required_artifact_groups(self):
         source = (ROOT / ".github" / "workflows" / "linux-iso.yml").read_text(encoding="utf-8")
         for name in (
