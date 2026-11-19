@@ -132,6 +132,25 @@ class DiskPlanValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(UnsafeInstallPlan, "geometria confirmada"):
             validate_install_plan(self.plan, inventory)
 
+    def test_rejects_free_region_extending_past_disk_size(self):
+        start = (DISK_SIZE - 10 * GIB) // MIB * MIB
+        size = 100 * GIB
+        region = {
+            "disk_path": "/dev/nvme0n1",
+            "disk_size_bytes": DISK_SIZE,
+            "start_bytes": start,
+            "end_bytes": start + size - 1,
+            "size_bytes": size,
+        }
+        inventory = {**self.inventory, "free_regions": [region]}
+        plan = InstallPlan(**{
+            **self.plan.__dict__,
+            "free_region_start": start,
+            "free_region_bytes": size,
+        })
+        with self.assertRaisesRegex(UnsafeInstallPlan, "ultrapassa os limites físicos"):
+            validate_install_plan(plan, inventory)
+
     def test_rejects_efi_from_another_disk(self):
         other = {"efi_partitions": [{
             "path": "/dev/sdb1", "disk_path": "/dev/sdb",

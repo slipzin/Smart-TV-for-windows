@@ -94,6 +94,14 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
     if not isinstance(disk_size_bytes, int) or disk_size_bytes <= 0:
         raise UnsafeInstallPlan("O tamanho do disco não foi confirmado pelo lsblk.")
 
+    # Recheck region bounds here as defense in depth: do not rely exclusively
+    # on the parted parser, since the validator may receive other inventories.
+    free_region_end = plan.free_region_start + plan.free_region_bytes - 1
+    if free_region_end >= disk_size_bytes:
+        raise UnsafeInstallPlan(
+            "A região livre ultrapassa os limites físicos confirmados do disco."
+        )
+
     exact_region = next(
         (region for region in inventory.get("free_regions", [])
          if region.get("disk_path") == plan.disk_path
