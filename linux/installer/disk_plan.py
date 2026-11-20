@@ -57,12 +57,23 @@ def validate_install_plan(plan: InstallPlan, inventory: dict[str, Any]) -> dict[
         for item in inventory.get("windows_installations", [])
         if item.get("disk_path")
     }
+    windows_inventory_evidence = bool(
+        inventory.get("windows_detected")
+        or inventory.get("windows_installations")
+        or inventory.get("windows_candidates")
+        or inventory.get("windows_volume_candidates")
+    )
+    if windows_inventory_evidence and not plan.windows_present:
+        raise UnsafeInstallPlan(
+            "O plano não pode omitir a presença de Windows/volumes candidatos detectada no inventário."
+        )
+
     if plan.disk_path not in confirmed_windows_disks:
         raise UnsafeInstallPlan(
             "A pré-detecção Windows não foi associada ao disco selecionado; dual boot neste disco está bloqueado."
         )
 
-    if plan.windows_present and not plan.bitlocker_acknowledged_by_user:
+    if (plan.windows_present or windows_inventory_evidence) and not plan.bitlocker_acknowledged_by_user:
         raise UnsafeInstallPlan(
             "O estado do BitLocker não pode ser verificado nesta versão. Reconheça o aviso; isso não autoriza instalação."
         )
