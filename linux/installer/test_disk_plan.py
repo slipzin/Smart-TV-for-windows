@@ -45,6 +45,15 @@ class DiskPlanValidationTests(unittest.TestCase):
             bitlocker_acknowledged_by_user=True, user_confirmed=True,
         )
 
+    def test_plan_cannot_hide_windows_evidence_from_inventory(self):
+        plan = InstallPlan(**{
+            **self.plan.__dict__,
+            "windows_present": False,
+            "bitlocker_acknowledged_by_user": False,
+        })
+        with self.assertRaisesRegex(UnsafeInstallPlan, "não pode omitir"):
+            validate_install_plan(plan, self.inventory)
+
     def test_valid_plan_is_simulation_only_and_preserves_efi(self):
         result = validate_install_plan(self.plan, self.inventory)
         self.assertTrue(result["preflight_valid"])
