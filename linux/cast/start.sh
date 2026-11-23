@@ -14,12 +14,23 @@ show_error() {
   fi
 }
 
+if [ -L "$DATA_DIR" ]; then
+  show_error "A pasta de dados do Cast não pode ser um link simbólico: $DATA_DIR"
+  exit 2
+fi
+mkdir -p "$DATA_DIR"
+
 if ! command -v vibecast >/dev/null 2>&1; then
   show_error "O receptor Google Cast não está instalado nesta imagem."
   exit 1
 fi
 
-if [ ! -s "$CERTS_FILE" ]; then
+if [ -L "$CERTS_FILE" ]; then
+  show_error "O arquivo privado de autenticação não pode ser um link simbólico: $CERTS_FILE"
+  exit 2
+fi
+
+if [ ! -f "$CERTS_FILE" ] || [ ! -s "$CERTS_FILE" ]; then
   show_error "O receptor Cast foi instalado, mas ainda não pode aceitar conexões. Falta o arquivo privado de autenticação do dispositivo Cast em:
 
 $CERTS_FILE
@@ -59,9 +70,17 @@ for index, item in enumerate(peers):
 PY
 
 chmod 600 "$CERTS_FILE"
-mkdir -p "$DATA_DIR"
-if [ ! -s "$DATA_DIR/config.toml" ]; then
-  cat > "$DATA_DIR/config.toml" <<'EOF'
+CONFIG_FILE="$DATA_DIR/config.toml"
+if [ -L "$CONFIG_FILE" ]; then
+  show_error "O arquivo de configuração não pode ser um link simbólico: $CONFIG_FILE"
+  exit 3
+elif [ -e "$CONFIG_FILE" ]; then
+  if [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
+    show_error "O arquivo de configuração existente não é um arquivo regular e válido: $CONFIG_FILE"
+    exit 3
+  fi
+else
+  cat > "$CONFIG_FILE" <<'EOF'
 [device]
 model = "Smart TV OS"
 manufacturer = "Smart TV OS"
@@ -73,7 +92,7 @@ certs = "certs.json"
 bind_host = "0.0.0.0"
 player_port = 8010
 EOF
-  chmod 600 "$DATA_DIR/config.toml"
+  chmod 600 "$CONFIG_FILE"
 fi
 
 if command -v chromium >/dev/null 2>&1; then
@@ -85,7 +104,12 @@ else
   exit 1
 fi
 
-mkdir -p "$DATA_DIR/browser-profile"
+BROWSER_PROFILE="$DATA_DIR/browser-profile"
+if [ -L "$BROWSER_PROFILE" ]; then
+  show_error "O perfil Chromium do Cast não pode ser um link simbólico: $BROWSER_PROFILE"
+  exit 3
+fi
+mkdir -p "$BROWSER_PROFILE"
 
 vibecast --data-dir "$DATA_DIR" --model "Smart TV OS" --bind-host 0.0.0.0 --player-port 8010 >>"$LOG_FILE" 2>&1 &
 RECEIVER_PID=$!
@@ -112,7 +136,7 @@ if ! (exec 3<>/dev/tcp/127.0.0.1/8010) 2>/dev/null; then
 fi
 
 "$BROWSER" --no-first-run --disable-session-crashed-bubble \
-  --user-data-dir="$DATA_DIR/browser-profile" \
+  --user-data-dir="$BROWSER_PROFILE" \
   --kiosk --autoplay-policy=no-user-gesture-required \
   http://127.0.0.1:8010/ >>"$BROWSER_LOG" 2>&1
 
