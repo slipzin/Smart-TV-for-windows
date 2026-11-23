@@ -103,7 +103,14 @@ if [[ "$(cat "$CONFIG_TARGET")" != "sentinel config contents" ]]; then
   exit 1
 fi
 
-# 5. Chromium profile symlinks must be rejected before launch.
+# 5. Provide a Chromium stub so this test reaches the profile-symlink guard.
+cat > "$MOCK_BIN/chromium" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+chmod +x "$MOCK_BIN/chromium"
+
+# 6. Chromium profile symlinks must be rejected before launch.
 PROFILE_HOME="$TMP/profile-link"
 mkdir -p "$PROFILE_HOME/.config/smart-tv/cast" "$TMP/profile-target"
 cat > "$PROFILE_HOME/.config/smart-tv/cast/certs.json" <<'EOF'
