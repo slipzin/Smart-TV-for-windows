@@ -33,7 +33,31 @@ if [[ "$MISSING_STATUS" -ne 2 ]] || ! grep -q "Falta o arquivo privado" "$TMP/mi
   exit 1
 fi
 
-# 2. Malformed JSON must also fail closed.
+# 2. Symlinked credentials must be rejected without changing the target permissions.
+LINK_HOME="$TMP/cert-link"
+mkdir -p "$LINK_HOME/.config/smart-tv/cast"
+CERT_TARGET="$TMP/cert-target.json"
+printf '%s\n' 'sensitive placeholder' > "$CERT_TARGET"
+chmod 644 "$CERT_TARGET"
+ln -s "$CERT_TARGET" "$LINK_HOME/.config/smart-tv/cast/certs.json"
+set +e
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$LINK_HOME" XDG_CONFIG_HOME="$LINK_HOME/.config" \
+  MOCK_PLAYER_ROOT="$MOCK_PLAYER" PATH="$MOCK_BIN:/usr/bin:/bin" \
+  bash "$START" >"$TMP/cert-link.log" 2>&1
+LINK_STATUS=$?
+set -e
+if [[ "$LINK_STATUS" -ne 2 ]] || ! grep -q "não pode ser um link simbólico" "$TMP/cert-link.log"; then
+  cat "$TMP/cert-link.log" >&2
+  echo "Symlinked certificate test failed." >&2
+  exit 1
+fi
+CERT_TARGET_MODE="$(stat -c '%a' "$CERT_TARGET")"
+if [[ "$CERT_TARGET_MODE" != "644" ]]; then
+  echo "Certificate symlink target permissions changed to $CERT_TARGET_MODE; expected 644." >&2
+  exit 1
+fi
+
+# 3. Malformed JSON must also fail closed.
 BAD_HOME="$TMP/bad"
 mkdir -p "$BAD_HOME/.config/smart-tv/cast"
 printf '{not valid json' > "$BAD_HOME/.config/smart-tv/cast/certs.json"
@@ -49,7 +73,65 @@ if [[ "$BAD_STATUS" -eq 0 ]] || ! grep -q "Arquivo de autenticação inválido" 
   exit 1
 fi
 
-# 3. Use explicitly fake, structurally shaped values to test only launcher
+# 4. A symlinked config must not overwrite the target file.
+CONFIG_HOME="$TMP/config-link"
+mkdir -p "$CONFIG_HOME/.config/smart-tv/cast"
+cat > "$CONFIG_HOME/.config/smart-tv/cast/certs.json" <<'EOF'
+{
+  "cpu": "FAKE DEVICE CERTIFICATE — TEST ONLY",
+  "ica": "FAKE INTERMEDIATE CERTIFICATE — TEST ONLY",
+  "certs": [{"pu": "FAKE", "pr": "FAKE", "sig_sha1": "ZmFrZQ==", "sig_sha256": "ZmFrZQ=="}]
+}
+EOF
+CONFIG_TARGET="$TMP/config-target.toml"
+printf '%s\n' 'sentinel config contents' > "$CONFIG_TARGET"
+ln -s "$CONFIG_TARGET" "$CONFIG_HOME/.config/smart-tv/cast/config.toml"
+set +e
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$CONFIG_HOME" XDG_CONFIG_HOME="$CONFIG_HOME/.config" \
+  MOCK_PLAYER_ROOT="$MOCK_PLAYER" PATH="$MOCK_BIN:/usr/bin:/bin" \
+  bash "$START" >"$TMP/config-link.log" 2>&1
+CONFIG_STATUS=$?
+
+set -e
+if [[ "$CONFIG_STATUS" -ne 3 ]] || ! grep -q "configuração não pode ser um link simbólico" "$TMP/config-link.log"; then
+  cat "$TMP/config-link.log" >&2
+  echo "Symlinked config test failed." >&2
+  exit 1
+fi
+if [[ "$(cat "$CONFIG_TARGET")" != "sentinel config contents" ]]; then
+  echo "Config symlink target was unexpectedly modified." >&2
+  exit 1
+fi
+
+# 5. Chromium profile symlinks must be rejected before launch.
+PROFILE_HOME="$TMP/profile-link"
+mkdir -p "$PROFILE_HOME/.config/smart-tv/cast" "$TMP/profile-target"
+cat > "$PROFILE_HOME/.config/smart-tv/cast/certs.json" <<'EOF'
+{
+  "cpu": "FAKE DEVICE CERTIFICATE — TEST ONLY",
+  "ica": "FAKE INTERMEDIATE CERTIFICATE — TEST ONLY",
+  "certs": [{"pu": "FAKE", "pr": "FAKE", "sig_sha1": "ZmFrZQ==", "sig_sha256": "ZmFrZQ=="}]
+}
+EOF
+cat > "$PROFILE_HOME/.config/smart-tv/cast/config.toml" <<'EOF'
+[device]
+model = "test"
+EOF
+ln -s "$TMP/profile-target" "$PROFILE_HOME/.config/smart-tv/cast/browser-profile"
+set +e
+env -u DISPLAY -u WAYLAND_DISPLAY HOME="$PROFILE_HOME" XDG_CONFIG_HOME="$PROFILE_HOME/.config" \
+  MOCK_PLAYER_ROOT="$MOCK_PLAYER" PATH="$MOCK_BIN:/usr/bin:/bin" \
+  bash "$START" >"$TMP/profile-link.log" 2>&1
+PROFILE_STATUS=$?
+
+set -e
+if [[ "$PROFILE_STATUS" -ne 3 ]] || ! grep -q "perfil Chromium do Cast não pode ser um link simbólico" "$TMP/profile-link.log"; then
+  cat "$TMP/profile-link.log" >&2
+  echo "Symlinked Chromium profile test failed." >&2
+  exit 1
+fi
+
+# 6. Use explicitly fake, structurally shaped values to test only launcher
 # orchestration. These values are NOT valid Cast credentials and cannot
 # authenticate a phone or a real Google Cast Sender.
 VALID_HOME="$TMP/valid"
